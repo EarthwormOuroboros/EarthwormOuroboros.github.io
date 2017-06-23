@@ -1,0 +1,18 @@
+set jdbcUrl=${jdbcUrl}  
+set username=${username}  
+set password=${password}  
+set driver=${driver}  
+set module=${module}  
+set resource=${resource}
+set jndiname=${jndiname}
+set name=${name}
+set resource=${resource}
+
+
+module add --name=$module --resources=$resource --dependencies=javax.api,javax.transaction.api
+ 
+/subsystem=datasources/jdbc-driver=$driver:add(driver-name=$driver,driver-module-name=$module)
+
+data-source add --jndi-name=$jndiname --name=$name --connection-url=$jdbcUrl --driver-name=$driver --user-name=$username --password=$password
+
+reload
