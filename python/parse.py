@@ -21,14 +21,26 @@ except IOError:
     sys.exit()
 
 def create_archive(PATHS, ARCHIVE):
+    logging.info('Creating archive file.')
+    # Make sure all the paths are absolute.
+    source_paths = [os.path.abspath(p) for p in PATHS]
+    # Expand source paths to absolute.
+    for d in range(0, len(source_paths)):
+        message = 'Source Path (absolute) %s:%s' % (d, source_paths[d])
+        logging.debug(message)
+ 
+    # Add sources to archive.
     with tarfile.open(ARCHIVE, "w:gz") as tf:
         logging.info('Archive File:' + ARCHIVE)
-        for path in zip(PATHS):
+        for path in zip(source_paths):
             path = ''.join(path)
             logging.info ('Source Path: ' + path)
             arc_path = path.replace('/', '-').replace('-', '', 1)
             logging.info('In-Archive Path: ' + arc_path)
             tf.add(path, arcname=arc_path)
+
+    # Return archive name
+    return ARCHIVE
 
 def main():
     # Handle the sections we want to handle.
@@ -104,17 +116,9 @@ def main():
 
     # END Handling sections.
 
-    # This stuff is last so we can include everything ready for processing.
-    #
-    logging.info('Creating archive file.')
-    # Make sure all the paths are absolute.
-    source_paths = [os.path.abspath(path) for path in sources]
-    # Expand databases.
-    for d in range(0, len(sources)):
-        message = 'Source Path (absolute) %s:%s' % (d, sources[d])
-        logging.info(message)
-    # Create archive.
-    #create_archive(source_paths, target_path)
+    # This is last so we can include everything.
+    archive_file=create_archive(sources, target_path)
+    logging.info('Created ' + archive_file)
 
 main()
 
