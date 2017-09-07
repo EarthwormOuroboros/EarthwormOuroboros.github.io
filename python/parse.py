@@ -116,6 +116,8 @@ def main():
 
     # END Handling sections.
 
+    # Do work!!!
+
     # This is last so we can include everything.
     archive_file=create_archive(sources, target_path)
     logging.info('Created ' + archive_file)
