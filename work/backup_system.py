@@ -1,72 +1,63 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import os,time,tarfile,logging
+import os,time,tarfile
+import logging
 import io,socket
-from ConfigParser import ConfigParser
-#import scp
-from paramiko import SSHClient
-from scp import SCPClient
-import smtplib
+import configparser
+import argparse
 
-# System data
-host_name = socket.gethostname()
-now = time.strftime('%H%M%S')
-today = time.strftime('%Y%m%d')
-config_file = "backup_system.ini"
+parser = argparse.ArgumentParser()
+parser.add_argument("-v", "--verbose", action="store_true", 
+                    help="Enable console output")
+parser.add_argument("-c", "--configfile", action="store",dest="configfile", 
+                    help="Specify configuration file")
+parser.add_argument("-L", "--loglevel", action="store", dest="loglevel", choices="[debug, info, warn, error]",
+                   help="Specify log level")
 
-# Load the configuration file
+args = parser.parse_args()
+
+if args.verbose:
+    print('Verbose Mode Set')
+
+if args.configfile:
+    if os.path.exists(args.configfile):
+        config_file = args.configfile
+        conf_msg = 'Using specified config file: ' + config_file
+else:
+    config_file = "backup_system.ini"
+    conf_msg = 'Using default config file: ' + config_file
+
 try:
-    config = ConfigParser()
-    config.read(config_file)
+    with open(config_file) as f:
+        config = configparser.RawConfigParser(allow_no_value=True)
+        config.read_file(f)
 
 except IOError:
-    print "Could not read config file: " + config_file
-    print "Bye!!!"
+    print ('Could not read config file: ' + config_file)
+    print ('Bye!!!')
     sys.exit()
 
+
 def create_archive(PATHS, ARCHIVE):
-    logging.debug('Function: create_archive')
-    logging.info('Creating archive file.')
-    # Make sure all the paths are absolute.
-    source_paths = [os.path.abspath(p) for p in PATHS]
-    # Expand source paths to absolute for debug.
-    for d in range(0, len(source_paths)):
-        message = 'Source Path (absolute) %s:%s' % (d, source_paths[d])
-        logging.debug(message)
- 
-    # Add sources to archive.
-    try:
-        with tarfile.open(ARCHIVE, "w:gz") as tf:
-            logging.info('Archive File:' + ARCHIVE)
-            for path in zip(source_paths):
-                path = ''.join(path)
-                logging.debug ('Source Path: ' + path)
-                arc_path = path.replace('/', '-').replace('-', '', 1)
-                logging.debug('In-Archive Path: ' + arc_path)
-                tf.add(path, arcname=arc_path)
-        xit = 'Successful'
+    with tarfile.open(ARCHIVE, "w:gz") as tf:
+        logging.info('Archive File:' + ARCHIVE)
+        for path in zip(PATHS):
+            path = ''.join(path)
+            logging.info ('Adding Source Path: ' + path)
+            arc_path = path.replace('/', '-').replace('-', '', 1)
+            logging.info('In-Archive Path: ' + arc_path)
+            tf.add(path, arcname=arc_path)
 
-     except IOError:
-         xit = 'Problems creating archive'
-         logging.info(xit)
+def sendToServer(HOST,LOCAL_FILE,REMOTE_FILE):
+    import scp
+    #client = scp.Client(host=HOST, user=backup, keyfile=keyfile)
+    client = scp.Client(host=HOST, user=backup)
+    client.use_system_keys()
+    # Transfer file
+    client.transfer(LOCAL_FILE, REMOTE_FILE)
 
-    # Return status
-    return xit
-
-def send_to_server(REMOTE_HOST,LOCAL_FILE,REMOTE_FILE):
-    logging.debug('Function: send_to_server')
-
-    ssh = SSHClient()
-    ssh.load_system_host_keys()
-    ssh.connect(REMOTE_HOST)
-
-    with SCPClient(ssh.get_transport()) as scp:
-        scp.put(LOCAL_FILE, REMOTE_FILE)
-
-    return xit
-
-def send_email(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
-    logging.debug('Function: send_email')
+def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
+    import smtplib
 
     # Email message
     message = """\
@@ -82,79 +73,98 @@ def send_email(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     server.quit()
 
 def main():
+    # System data
+    host_name = socket.gethostname()
+    now = time.strftime('%H%M%S')
+    today = time.strftime('%Y%m%d')
+
     # Handle the sections.
     for section in config.sections():
         # Known sections.
         if 'default' in section:
-            # Set default settings
+            # Default stuff
             sources = config.get(section, 'sources').split(",")
-            base_dir = config.get(section, 'base_dir')
+            # Make paths absolute
+            base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
+            sources = [ os.path.expanduser('~') + os.sep + s for s in sources ]
+            # Create base_dir if needed
+            if os.path.exists(base_dir):
+                base_msg = 'Using existing base directory: %s' % (base_dir)
+            else:
+                os.mkdir(base_dir)
+                base_msg = 'Created base directory: %s' % (base_dir)
 
             # Logging stuff
-            logdir = base_dir + os.sep + 'logs'
-            logfile = logdir + os.sep + host_name + '_' + today + '-' + now + '.log'
-            # Create Logfile dir if needed
-            if not os.path.exists(logdir):
-                os.mkdir(logdir)
+            log_dir = base_dir + os.sep + 'logs'
+            log_file = log_dir + os.sep + host_name + '_' + today + '-' + now + '.log'
+            # Create log_dir if needed
+            if os.path.exists(log_dir):
+                log_msg = 'Using existing log directory: %s' % (log_dir)
+            else:
+                os.mkdir(log_dir)
+                log_msg = 'Created log directory: %s' % (log_dir)
 
             # Set basic settings.
-            target_dir = base_dir + os.sep + today
-            target_name = host_name + "_" + today + "-" + now + ".tar.gz"
-            target_path = target_dir + os.sep + target_name
+            archive_dir = base_dir + os.sep + 'archives' + os.sep + today
+            archive_name = host_name + "_" + today + "-" + now + ".tar.gz"
+            archive_path = archive_dir + os.sep + archive_name
+            # Create archive directory if it isn't already there
+            if os.path.exists(archive_dir):
+                arc_msg = 'Using existing archive directory: %s' % (archive_dir)
+            else:
+                os.makedirs(archive_dir) # make directory
+                arc_msg = 'Created archive directory: %s' % (archive_dir)
 
             # Open logfile and set level
-            logging.basicConfig(filename=logfile,level=logging.DEBUG)
+            logging.basicConfig(filename=log_file,level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 
-            # Print some info
-            logging.info('Logfile: ' + logfile)
+            # Output some info
+            logging.info('Logfile: ' + log_file)
             logging.info('Hostname: ' + host_name)
-            logging.info('Date Stamp: ' + today + '-' + now)
-            logging.info('Config File: ' + config_file)
-            logging.info('Destination:' + base_dir)
-            # Expand source directories.
+            logging.debug('Date Stamp: ' + today + '-' + now)
+            logging.info(conf_msg)
+            logging.debug(base_msg)
+            logging.debug(log_msg)
+            logging.debug(arc_msg)
+
+            # Print source directories
             for d in range(0, len(sources)):
                 message = 'Source Directory %s:%s' % (d, sources[d])
-                logging.info(message)
+                logging.debug(message)
 
-            # Create archive directory if it isn't already there
-            if not os.path.exists(target_dir):
-                os.mkdir(target_dir) # make directory
-                logging.info('Created archive directory: ' + target_dir)
             # END default section
 
         # Handle remote section.
         if 'remote' in section:
             remote_host = config.get(section, 'host')
-            remote_user = config.get(section, 'user')
             remote_path = config.get(section, 'path')
             logging.info('Remote Host:' + remote_host)
-            logging.info('Remote User:' + remote_user)
             logging.info('Remote Path:' + remote_path)
             # END remote section
 
         # Handle Mysql section.
         if 'mysql' in section:
             mysql_host = config.get(section, 'host') 
-            mysql_user = config.get(section, 'user') 
             mysql_port = config.get(section, 'port')
-            mysql_databases = config.get(section, 'databases').split(",")
             logging.info('MySQL Host:' + mysql_host)
             logging.info('MySQL Port:' + mysql_port)
-            # Expand databases.
-            for d in range(0, len(mysql_databases)):
-                message = 'Database Schema %s:%s' % (d, mysql_databases[d])
-                logging.info(message)
             # END mysql section
 
-        # Pretty much done with groking sections.
+        # Pretty much done with groking sections. l8!!!
+        # Print some useful info to terminal. Useful for dev and debug.
+        if args.verbose:
+            print("Section ::: %s" % section)
+            for options in config.options(section):
+                print("Option | Value | Type ::: %s | %s | %s" % (options,config.get(section, options),str(type(options))))
 
     # END Handling sections.
 
-    # Do work!!!
-
-    # This stuff is last so we can include everything ready for processing.
-    archive_status=create_archive(sources, target_path)
-    logging.info('Status [create_archive]: ' + archive_status)
+    # This is last so we can include everything ready for processing.
+    #
+    # Make sure all the paths are absolute.
+    source_paths = [os.path.abspath(path) for path in sources]
+    # Create archive.
+    create_archive(source_paths, archive_path)
 
 main()
 
