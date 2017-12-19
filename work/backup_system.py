@@ -86,13 +86,13 @@ def main():
             sources = config.get(section, 'sources').split(",")
             # Make paths absolute
             base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
-            sources = [ os.path.expanduser('~') + os.sep + s for s in sources ]
+            sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in sources ]
             # Create base_dir if needed
             if os.path.exists(base_dir):
                 base_msg = 'Using existing base directory: %s' % (base_dir)
             else:
+                base_msg = 'Creating base directory: %s' % (base_dir)
                 os.mkdir(base_dir)
-                base_msg = 'Created base directory: %s' % (base_dir)
 
             # Logging stuff
             log_dir = base_dir + os.sep + 'logs'
@@ -101,8 +101,8 @@ def main():
             if os.path.exists(log_dir):
                 log_msg = 'Using existing log directory: %s' % (log_dir)
             else:
+                log_msg = 'Creating log directory: %s' % (log_dir)
                 os.mkdir(log_dir)
-                log_msg = 'Created log directory: %s' % (log_dir)
 
             # Set basic settings.
             archive_dir = base_dir + os.sep + 'archives' + os.sep + today
