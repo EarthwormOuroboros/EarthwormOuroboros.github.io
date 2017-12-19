@@ -1,0 +1,8 @@
+# install-hawtio.cli
+
+/system-property=hawtio.authenticationEnabled:add(value="true")
+/system-property=hawtio.realm:add(value=jboss-web-policy")
+/system-property=hawtio.role:add(value="admin")
+
+#/system-property=hawtio.authenticationEnabled:add(value="false")
+
