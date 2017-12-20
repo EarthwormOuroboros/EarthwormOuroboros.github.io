@@ -84,9 +84,15 @@ def main():
         if 'default' in section:
             # Default stuff
             sources = config.get(section, 'sources').split(",")
+
             # Make paths absolute
-            base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
+            base_dir = config.get(section, 'basedir')
+            if not base_dir.startswith('/'):
+              base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
+
+            # Sources not absolute are relative to the home dir the user running the script.
             sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in sources ]
+
             # Create base_dir if needed
             if os.path.exists(base_dir):
                 base_msg = 'Using existing base directory: %s' % (base_dir)
