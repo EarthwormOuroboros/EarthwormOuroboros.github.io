@@ -7,12 +7,11 @@ import configparser
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-v", "--verbose", action="store_true", 
+parser.add_argument("-v","--verbose",action="store_true",
                     help="Enable console output")
-parser.add_argument("-c", "--configfile", action="store",dest="configfile", 
+parser.add_argument("-c","--configfile",action="store",dest="configfile",
                     help="Specify configuration file")
-parser.add_argument("-L", "--loglevel", action="store", dest="loglevel", choices="[debug, info, warn, error]",
-                   help="Specify log level")
+#parser.add_argument("-L","--loglevel",action="store",dest="loglevel",choices="[debug,info,warn,error]",help="Specify log level")
 
 args = parser.parse_args()
 
@@ -85,12 +84,12 @@ def main():
             # Default stuff
             sources = config.get(section, 'sources').split(",")
 
-            # Make paths absolute
+            # Make path absolute
             base_dir = config.get(section, 'basedir')
             if not base_dir.startswith('/'):
               base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
 
-            # Sources not absolute are relative to the home dir the user running the script.
+            # Sources not absolute are relative to the home dir of the user running the script.
             sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in sources ]
 
             # Create base_dir if needed
@@ -110,7 +109,7 @@ def main():
                 log_msg = 'Creating log directory: %s' % (log_dir)
                 os.mkdir(log_dir)
 
-            # Set basic settings.
+            # Set archive settings.
             archive_dir = base_dir + os.sep + 'archives' + os.sep + today
             archive_name = host_name + "_" + today + "-" + now + ".tar.gz"
             archive_path = archive_dir + os.sep + archive_name
@@ -119,7 +118,7 @@ def main():
                 arc_msg = 'Using existing archive directory: %s' % (archive_dir)
             else:
                 os.makedirs(archive_dir) # make directory
-                arc_msg = 'Created archive directory: %s' % (archive_dir)
+                arc_msg = 'Creating archive directory: %s' % (archive_dir)
 
             # Open logfile and set level
             logging.basicConfig(filename=log_file,level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
