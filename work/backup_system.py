@@ -82,15 +82,14 @@ def main():
         # Known sections.
         if 'default' in section:
             # Default stuff
-            sources = config.get(section, 'sources').split(",")
 
-            # Make path absolute
+            # Base dir relative to home dir unless absolute
             base_dir = config.get(section, 'basedir')
             if not base_dir.startswith('/'):
               base_dir = os.path.expanduser('~') + os.sep + config.get(section, 'basedir')
 
             # Sources not absolute are relative to the home dir of the user running the script.
-            sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in sources ]
+            sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in config.get(section, 'sources').split(",") ]
 
             # Create base_dir if needed
             if os.path.exists(base_dir):
@@ -149,10 +148,15 @@ def main():
 
         # Handle Mysql section.
         if 'mysql' in section:
-            mysql_host = config.get(section, 'host') 
-            mysql_port = config.get(section, 'port')
-            logging.info('MySQL Host:' + mysql_host)
-            logging.info('MySQL Port:' + mysql_port)
+            if config.has_option(section, 'socket'):
+                mysql_socket = config.get(section, 'socket')
+                logging.info('MySQL Socket:' + mysql_socket)
+            else;
+                mysql_host = config.get(section, 'host') 
+                mysql_port = config.get(section, 'port')
+                logging.info('MySQL Host:' + mysql_host)
+                logging.info('MySQL Port:' + mysql_port)
+
             # END mysql section
 
         # Pretty much done with groking sections. l8!!!
