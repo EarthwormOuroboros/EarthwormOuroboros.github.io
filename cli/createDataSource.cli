@@ -1,3 +1,6 @@
+# Create Data Source in Wildfly 10 / JBoss EAP 7
+# Requires a properties file to provide the values.
+
 set jdbcUrl=${jdbcUrl}  
 set username=${username}  
 set password=${password}  
@@ -7,7 +10,6 @@ set resource=${resource}
 set jndiname=${jndiname}
 set name=${name}
 set resource=${resource}
-
 
 module add --name=$module --resources=$resource --dependencies=javax.api,javax.transaction.api
  
