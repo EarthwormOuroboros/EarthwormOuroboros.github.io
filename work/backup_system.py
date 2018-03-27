@@ -5,6 +5,7 @@ import logging
 import io,socket
 import configparser
 import argparse
+import getpass
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-v","--verbose",action="store_true",
@@ -47,13 +48,19 @@ def create_archive(PATHS, ARCHIVE):
             logging.info('In-Archive Path: ' + arc_path)
             tf.add(path, arcname=arc_path)
 
-def sendToServer(HOST,LOCAL_FILE,REMOTE_FILE):
-    import scp
-    #client = scp.Client(host=HOST, user=backup, keyfile=keyfile)
-    client = scp.Client(host=HOST, user=backup)
-    client.use_system_keys()
+def sendToServer(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
+    import paramiko
+
     # Transfer file
-    client.transfer(LOCAL_FILE, REMOTE_FILE)
+    try:
+        key = paramiko.RSAKey.from_private_key_file(KEY_FILE)
+        t = paramiko.Transport((HOST, PORT))
+        t.connect( username = USER, pkey = key)
+        sftp = paramiko.SFTPClient.from_transport(t)
+        sftp.put(LOCAL_FILE, REMOTE_FILE)
+
+    finally:
+        t.close()
 
 def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     import smtplib
@@ -140,10 +147,29 @@ def main():
 
         # Handle remote section.
         if 'remote' in section:
+            if config.has_option(section, 'user'):
+                remote_user = config.get(section, 'user')
+            else:
+                remote_user = getpass.getuser()
+
+            if config.has_option(section, 'port'):
+                remote_port = config.get(section, 'port')
+            else:
+                remote_port = 22
+
+            if config.has_option(section, 'keyfile'):
+                key_file = config.get(section, 'keyfile')
+            else:
+                key_file = os.path.expanduser('~') + os.sep + '.ssh/id_rsa'
+
             remote_host = config.get(section, 'host')
-            remote_path = config.get(section, 'path')
+            remote_path = config.get(section, 'path') + os.sep + archive_name
+
+            logging.info('Remote User:' + remote_user)
             logging.info('Remote Host:' + remote_host)
+            logging.info('Remote Port:' + str(remote_port))
             logging.info('Remote Path:' + remote_path)
+            logging.info('Key File:' + key_file)
             # END remote section
 
         # Handle Mysql section.
@@ -151,7 +177,7 @@ def main():
             if config.has_option(section, 'socket'):
                 mysql_socket = config.get(section, 'socket')
                 logging.info('MySQL Socket:' + mysql_socket)
-            else;
+            else:
                 mysql_host = config.get(section, 'host') 
                 mysql_port = config.get(section, 'port')
                 logging.info('MySQL Host:' + mysql_host)
@@ -174,6 +200,9 @@ def main():
     source_paths = [os.path.abspath(path) for path in sources]
     # Create archive.
     create_archive(source_paths, archive_path)
+
+    # Send archive file to remote system.
+    sendToServer(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
 
 main()
 
