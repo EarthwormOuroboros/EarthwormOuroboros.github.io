@@ -174,14 +174,18 @@ def main():
 
         # Handle Mysql section.
         if 'mysql' in section:
+            mysql_host = config.get(section, 'host') 
+            logging.info('MySQL Host:' + mysql_host)
+
             if config.has_option(section, 'socket'):
                 mysql_socket = config.get(section, 'socket')
                 logging.info('MySQL Socket:' + mysql_socket)
             else:
-                mysql_host = config.get(section, 'host') 
                 mysql_port = config.get(section, 'port')
-                logging.info('MySQL Host:' + mysql_host)
                 logging.info('MySQL Port:' + mysql_port)
+
+            # Schema list to backup.
+            mysql_schema_list = config.get(section, 'schemas').split(",")
 
             # END mysql section
 
