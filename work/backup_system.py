@@ -48,6 +48,15 @@ def create_archive(PATHS, ARCHIVE):
             logging.info('In-Archive Path: ' + arc_path)
             tf.add(path, arcname=arc_path)
 
+def directory_check(NAME, PATH):
+    # Create archive directory if it isn't already there
+    if os.path.exists(PATH):
+        msg = 'Using existing %s directory: %s' % (NAME, PATH)
+    else:
+        os.makedirs(PATH) # make directory
+        msg = 'Creating %s directory: %s' % (NAME, PATH)
+    return msg
+
 def sendToServer(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
     import paramiko
 
@@ -97,34 +106,21 @@ def main():
 
             # Sources not absolute are relative to the home dir of the user running the script.
             sources = [ os.path.expanduser('~') + os.sep + s if not s.startswith('/') else s for s in config.get(section, 'sources').split(",") ]
-
-            # Create base_dir if needed
-            if os.path.exists(base_dir):
-                base_msg = 'Using existing base directory: %s' % (base_dir)
-            else:
-                base_msg = 'Creating base directory: %s' % (base_dir)
-                os.mkdir(base_dir)
+            # Handle directory.
+            base_msg = directory_check('base', base_dir)
 
             # Logging stuff
             log_dir = base_dir + os.sep + 'logs'
             log_file = log_dir + os.sep + host_name + '_' + today + '-' + now + '.log'
-            # Create log_dir if needed
-            if os.path.exists(log_dir):
-                log_msg = 'Using existing log directory: %s' % (log_dir)
-            else:
-                log_msg = 'Creating log directory: %s' % (log_dir)
-                os.mkdir(log_dir)
+            # Handle directory.
+            log_msg = directory_check('log', log_dir)
 
             # Set archive settings.
             archive_dir = base_dir + os.sep + 'archives' + os.sep + today
             archive_name = host_name + "_" + today + "-" + now + ".tar.gz"
             archive_path = archive_dir + os.sep + archive_name
-            # Create archive directory if it isn't already there
-            if os.path.exists(archive_dir):
-                arc_msg = 'Using existing archive directory: %s' % (archive_dir)
-            else:
-                os.makedirs(archive_dir) # make directory
-                arc_msg = 'Creating archive directory: %s' % (archive_dir)
+            # Handle directory.
+            arc_msg = directory_check('archive', archive_dir)
 
             # Open logfile and set level
             logging.basicConfig(filename=log_file,level=logging.DEBUG,format='%(asctime)s %(levelname)s %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
@@ -198,13 +194,12 @@ def main():
 
     # END Handling sections.
 
-    # This is last so we can include everything ready for processing.
-    #
-    # Make sure all the paths are absolute.
+    # These actions are last so we can include everything ready for processing.
+
+    # Final check to make sure all the paths are absolute.
     source_paths = [os.path.abspath(path) for path in sources]
     # Create archive.
     create_archive(source_paths, archive_path)
-
     # Send archive file to remote system.
     sendToServer(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
 
