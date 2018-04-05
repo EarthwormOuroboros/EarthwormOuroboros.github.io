@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import os,time,tarfile
-import logging
-import io,socket
-import configparser
-import argparse
-import getpass
+import os,time,tarfile,logging,io,socket
+import configparser,argparse,getpass
+import paramiko
+import smtplib
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-v","--verbose",action="store_true",
@@ -58,8 +56,6 @@ def directory_check(NAME, PATH):
     return msg
 
 def sendToServer(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
-    import paramiko
-
     # Transfer file
     try:
         key = paramiko.RSAKey.from_private_key_file(KEY_FILE)
@@ -72,8 +68,6 @@ def sendToServer(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
         t.close()
 
 def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
-    import smtplib
-
     # Email message
     message = """\
         From: %s
@@ -166,6 +160,7 @@ def main():
             logging.info('Remote Port:' + str(remote_port))
             logging.info('Remote Path:' + remote_path)
             logging.info('Key File:' + key_file)
+
             # END remote section
 
         # Handle Mysql section.
