@@ -26,21 +26,15 @@ def gen-key():
 
 
 def encrypt-string():
-    with open('/path/to/encrypted_data.bin', 'wb') as out_file:
-        recipient_key = RSA.import_key(
-            open(public_key_file).read())
-        session_key = get_random_bytes(16)
- 
-        cipher_rsa = PKCS1_OAEP.new(recipient_key)
-        out_file.write(cipher_rsa.encrypt(session_key))
- 
-        cipher_aes = AES.new(session_key, AES.MODE_EAX)
-        data = b'blah blah blah Python blah blah'
-        ciphertext, tag = cipher_aes.encrypt_and_digest(data)
- 
-        out_file.write(cipher_aes.nonce)
-        out_file.write(tag)
-        out_file.write(ciphertext)
+    recipient_key = RSA.import_key(open(public_key_file).read())
+    session_key = get_random_bytes(16)
+
+    cipher_rsa = PKCS1_OAEP.new(recipient_key)
+
+    cipher_aes = AES.new(session_key, AES.MODE_EAX)
+    data = b'blah blah blah Python blah blah'
+    ciphertext, tag = cipher_aes.encrypt_and_digest(data)
+
 
 def decrypt-string():
     
@@ -61,3 +55,8 @@ def decrypt-string():
  
     print(data)
 
+def main():
+
+
+
+main()
