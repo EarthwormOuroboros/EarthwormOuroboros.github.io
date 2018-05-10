@@ -1,57 +1,31 @@
 /usr/bin/env python3
 
 import argpars
-from Crypto.PublicKey import RSA
-from Crypto.Random import get_random_bytes
-from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Cipher import AES
 
-code = 'nooneknows'
-private_key_file = '.keys/rsa_private.key'
-public_key_file = '.keys/rsa_public.pem'
+# https://www.blog.pythonlibrary.org/2016/05/18/python-3-an-intro-to-encryption/
+
+key = 'nooneknows'
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-k","--keyfile",action="store_true",
-                    help="Create key file pair")
 parser.add_argument("-f","--fetch",action="store_true",
                     help="Fetch data")
 parser.add_argument("-s","--set",action="store_true",
                     help="Set data.")
 
-
-def gen-key():
-    key = RSA.generate(2048)
-    encrypted_key = key.exportKey(passphrase=code, pkcs=8, protection="scryptAndAES128-CBC")
-    with open(private_key_file, 'wb') as f: f.write(encrypted_key)
-    with open(public_key_file, 'wb') as f: f.write(key.publickey().exportKey())
-
-
-def encrypt-string():
-    recipient_key = RSA.import_key(open(public_key_file).read())
-    session_key = get_random_bytes(16)
-
-    cipher_rsa = PKCS1_OAEP.new(recipient_key)
-
-    cipher_aes = AES.new(session_key, AES.MODE_EAX)
-    data = b'blah blah blah Python blah blah'
-    ciphertext, tag = cipher_aes.encrypt_and_digest(data)
+# Encryption
+def encrypt-string(DATA, KEY, IV):
+    encryption_suite = AES.new(KEY, AES.MODE_CBC, IV)
+    cipher_text = encryption_suite.encrypt(DATA)
+    return cipher_text
 
 
-def decrypt-string():
-    private_key = RSA.import_key(
-        open(private_key_file).read(),
-        passphrase=code)
+# Decryption
+def decrypt-string(DATA, KEY, IV):
+    decryption_suite = AES.new(KEY, AES.MODE_CBC, IV)
+    plain_text = decryption_suite.decrypt(DATA)
+    return plain_text
 
-    enc_session_key, nonce, tag, ciphertext = [ fobj.read(x) 
-                                                for x in (private_key.size_in_bytes(), 
-                                                16, 16, -1) ]
-
-    cipher_rsa = PKCS1_OAEP.new(private_key)
-    session_key = cipher_rsa.decrypt(enc_session_key)
-
-    cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
-    data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-
-    print(data)
 
 def main():
 
