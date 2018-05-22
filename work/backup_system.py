@@ -17,10 +17,9 @@ args = parser.parse_args()
 if args.verbose:
     print('Verbose Mode Set')
 
-if args.configfile:
-    if os.path.exists(args.configfile):
-        config_file = args.configfile
-        conf_msg = 'Using specified config file: ' + config_file
+if args.configfile and os.path.exists(args.configfile):
+    config_file = args.configfile
+    conf_msg = 'Using specified config file: ' + config_file
 else:
     config_file = "backup_system.ini"
     conf_msg = 'Using default config file: ' + config_file
