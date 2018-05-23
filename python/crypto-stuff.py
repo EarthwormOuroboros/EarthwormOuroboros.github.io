@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os,argparse
+import pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
 
@@ -30,19 +31,22 @@ def main():
     add_data = ("INSERT INTO ds389 "
                 "(edata, date, time) "
                 "VALUES (%s, %s, %s)")
+
     read_data = ("SELECT FROM ds389 "
                  "(edata, date, time) "
                  "VALUES (%(emp_no)s, %(salary)s, %(from_date)s, %(to_date)s)")
 
+    #conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock', user='root', passwd=None, db='mysql')
+    #cur = conn.cursor()
 
     if args.encrypt:
       password = 'Whut3v4Mang!'
-      string = bytes.encode(password)
+      string = str.encode(password)
       cipher_key = Fernet.generate_key()
       key_file = os.path.expanduser('~') + os.sep + '.iok'
 
       try:
-        f = open(key_file, 'wt').write(bytes.decode(cipher_key))
+        open(key_file, 'wt').write(bytes.decode(cipher_key))
 
       except IOError:
         print ('Could not open key file: ' + key_file)
@@ -52,20 +56,26 @@ def main():
       encrypted_text = crypto_string(string, cipher_key, 'encrypt')
       print(encrypted_text)
 
-      data = (encrypted_text, now.strftime('%Y-%m-%d'), now.strftime('%H:%M:%S'))
+      #cur.execute("SELECT * FROM user")
+      #for r in cur:
+      #    print(r)
 
+      data = (encrypted_text, now.strftime('%Y-%m-%d'), now.strftime('%H:%M:%S'))
 
     if args.decrypt:
       key_file = os.path.expanduser('~') + os.sep + '.iok'
 
-      encrypted_text = b'gAAAAABbA5d_aPZlueUfVlE9_a2e2NrW0Yk4epXb4zXvG-NDRmW_u7tcisN98RIgfWqJe39KF80UzwIn4UnsdsDjhfrIh2Y9OQ=='
+      encrypted_text =  'gAAAAABbBI9Ca0ADXQ6FZQb1D9UwDx6XVdJFzjsIH2-06oUJnZspD2Y7TRAwMPoCH6CbrfeyznNVXzJ8pCgAxxwbPoFc9x7ACQ=='
 
       with open(key_file, 'rt') as key:
-          #cipher_key = bytes.encode(key.read())
-          cipher_key = key.read()
+          cipher_key = str.encode(key.read())
+          #cipher_key = key.read()
 
-      decrypted_text = crypto_string(encrypted_text, cipher_key, 'decrypt')
+      decrypted_text = crypto_string(str.encode(encrypted_text), cipher_key, 'decrypt')
       print(bytes.decode(decrypted_text))
+
+    #cur.close()
+    #conn.close()
 
 
 main()
