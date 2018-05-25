@@ -1,6 +1,7 @@
 CREATE DATABASE crypto;
 
-CREATE TABLE `crypto.credentials` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`user_id`)
+CREATE TABLE crypto.credentials (
+  user_id int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials'
+

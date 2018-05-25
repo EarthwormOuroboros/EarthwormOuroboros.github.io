@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-import os,argparse
+import os,sys,argparse
 import pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-f","--decrypt",action="store_true",
+parser.add_argument("-d","--decrypt",action="store_true",
                     help="Fetch data")
-parser.add_argument("-s","--encrypt",action="store_true",
+parser.add_argument("-e","--encrypt",action="store_true",
                     help="Set data.")
 
 args = parser.parse_args()
@@ -40,10 +40,11 @@ def main():
     #cur = conn.cursor()
 
     if args.encrypt:
-      password = 'Whut3v4Mang!'
-      string = str.encode(password)
+      #password = 'Whut3v4Mang!'
+      #string = str.encode(password)
       cipher_key = Fernet.generate_key()
       key_file = os.path.expanduser('~') + os.sep + '.iok'
+      password_file = os.path.expanduser('~') + os.sep + '.iok_secret'
 
       try:
         open(key_file, 'wt').write(bytes.decode(cipher_key))
@@ -53,6 +54,16 @@ def main():
         print ('Bye!!!')
         sys.exit()
 
+
+      try:
+        password = open(password_file, 'rt').read()
+
+      except IOError:
+        print ('Could not open key file: ' + password_file)
+        print ('Bye!!!')
+        sys.exit()
+
+      string = str.encode(password)
       encrypted_text = crypto_string(string, cipher_key, 'encrypt')
       print(encrypted_text)
 
