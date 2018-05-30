@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os,sys,argparse
+import os,sys,socket,argparse
+import time
 import pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
@@ -10,8 +11,16 @@ parser.add_argument("-d","--decrypt",action="store_true",
                     help="Fetch data")
 parser.add_argument("-e","--encrypt",action="store_true",
                     help="Set data.")
+parser.add_argument("-i","--init",action="store_true",
+                    help="Install data.")
 
 args = parser.parse_args()
+
+host_name = socket.gethostname()
+now = time.strftime('%Y-%m-%d %H:%M:%S')
+key_file = os.path.expanduser('~') + os.sep + '.iok'
+password_file = os.path.expanduser('~') + os.sep + '.iok_secret'
+
 
 def crypto_string(DATA, KEY, ACTION):
     cipher = Fernet(KEY)
@@ -26,25 +35,12 @@ def crypto_string(DATA, KEY, ACTION):
 
 
 def main():
-    now = datetime.now()
 
-    add_data = ("INSERT INTO ds389 "
-                "(edata, date, time) "
-                "VALUES (%s, %s, %s)")
-
-    read_data = ("SELECT FROM ds389 "
-                 "(edata, date, time) "
-                 "VALUES (%(emp_no)s, %(salary)s, %(from_date)s, %(to_date)s)")
-
-    #conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock', user='root', passwd=None, db='mysql')
-    #cur = conn.cursor()
+    conx = pymysql.connect(host='192.168.232.9', user='lorenzo', passwd='Fuxm3Running!', db='crypto')
+    cur = conx.cursor()
 
     if args.encrypt:
-      #password = 'Whut3v4Mang!'
-      #string = str.encode(password)
       cipher_key = Fernet.generate_key()
-      key_file = os.path.expanduser('~') + os.sep + '.iok'
-      password_file = os.path.expanduser('~') + os.sep + '.iok_secret'
 
       try:
         open(key_file, 'wt').write(bytes.decode(cipher_key))
@@ -67,15 +63,21 @@ def main():
       encrypted_text = crypto_string(string, cipher_key, 'encrypt')
       print(encrypted_text)
 
-      #cur.execute("SELECT * FROM user")
-      #for r in cur:
-      #    print(r)
+      push_data = ("""UPDATE credentials SET Hostname=%s Password=%s DateStamp=%s WHERE id=%s""", 
+                   (host_name, encrypted_text, now, '1'))
 
-      data = (encrypted_text, now.strftime('%Y-%m-%d'), now.strftime('%H:%M:%S'))
+      push_data = ("""INSERT INTO credentials (Hostname, Password, DateStamp) VALUES (%s, %s, %s)""",
+                   (host_name, encrypted_text, now))
+
+      cur.execute(push_data)
+
+
+      try:
+        os.remove(filename)
+      except OSError:
+        pass
 
     if args.decrypt:
-      key_file = os.path.expanduser('~') + os.sep + '.iok'
-
       encrypted_text =  'gAAAAABbBI9Ca0ADXQ6FZQb1D9UwDx6XVdJFzjsIH2-06oUJnZspD2Y7TRAwMPoCH6CbrfeyznNVXzJ8pCgAxxwbPoFc9x7ACQ=='
 
       with open(key_file, 'rt') as key:
