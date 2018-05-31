@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import os,sys,socket,argparse
-import time
-import pymysql
+import os,sys,socket,argparse,time,pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
 
@@ -36,7 +34,8 @@ def crypto_string(DATA, KEY, ACTION):
 
 def main():
 
-    conx = pymysql.connect(host='127.0.0.1', user='lorenzo', passwd='Whut3v4mang!', db='crypto', cursorclass=pymysql.cursors.DictCursor)
+    conx = pymysql.connect(read_default_file="~/.samy_io", db='crypto',
+                           cursorclass=pymysql.cursors.DictCursor)
 
     if args.encrypt:
       cipher_key = Fernet.generate_key()
@@ -79,14 +78,44 @@ def main():
 
 
     if args.decrypt:
-      encrypted_text =  'gAAAAABbBI9Ca0ADXQ6FZQb1D9UwDx6XVdJFzjsIH2-06oUJnZspD2Y7TRAwMPoCH6CbrfeyznNVXzJ8pCgAxxwbPoFc9x7ACQ=='
 
       with open(key_file, 'rt') as key:
           cipher_key = str.encode(key.read())
-          #cipher_key = key.read()
 
-      decrypted_text = crypto_string(str.encode(encrypted_text), cipher_key, 'decrypt')
+      try:
+        with conx.cursor() as cursor:
+          # Read record
+          pull_data = "SELECT Password FROM credentials WHERE user_id=%s"
+          cursor.execute(pull_data,(1))
+          encrypted_data = cursor.fetchone()
+
+        conx.commit()
+
+      finally:
+        conx.close()
+
+      encrypted_str = encrypted_data.get('Password')
+      decrypted_text = crypto_string(str.encode(encrypted_str), cipher_key, 'decrypt')
       print(bytes.decode(decrypted_text))
+
+
+    if args.init:
+
+      try:
+        with conx.cursor() as cursor:
+          #Create table and initialize data.
+          create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT,              `Hostname` varchar(100) NOT NULL,`Password` varchar(100) NOT NULL,`DateStamp` datetime NOT NULL,                            PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
+
+          init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( %s, 'nothing', %s);"
+
+          #cursor.execute(create_data)
+          cursor.execute(init_data,(host_name, now))
+          encrypted_data = cursor.fetchone()
+
+        conx.commit()
+
+      finally:
+        conx.close()
 
 
 main()
