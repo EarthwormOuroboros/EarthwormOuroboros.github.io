@@ -14,6 +14,7 @@ parser.add_argument("-i","--init",action="store_true",
 
 args = parser.parse_args()
 
+# Set some global stuff
 host_name = socket.gethostname()
 now = time.strftime('%Y-%m-%d %H:%M:%S')
 key_file = os.path.expanduser('~') + os.sep + '.iok'
@@ -40,6 +41,7 @@ def main():
     if args.encrypt:
       cipher_key = Fernet.generate_key()
 
+      # Write key to file
       try:
         open(key_file, 'wt').write(bytes.decode(cipher_key))
 
@@ -49,17 +51,19 @@ def main():
         sys.exit()
 
 
+      # Read password from filesystem
       try:
         password = open(password_file, 'rt').read()
 
       except IOError:
-        print ('Could not open key file: ' + password_file)
+        print ('Could not open password file: ' + password_file)
         print ('Bye!!!')
         sys.exit()
 
       string = str.encode(password)
       encrypted_text = bytes.decode(crypto_string(string, cipher_key, 'encrypt'))
 
+      # Save encrypted string to DB
       try:
         with conx.cursor() as cursor:
           # Create a new record
@@ -71,6 +75,7 @@ def main():
       finally:
         conx.close()
 
+      # Delete password file from filesystem
       #try:
       #  os.remove(password_file)
       #except OSError:
@@ -82,6 +87,7 @@ def main():
       with open(key_file, 'rt') as key:
           cipher_key = str.encode(key.read())
 
+      # Get encrypted password from DB
       try:
         with conx.cursor() as cursor:
           # Read record
@@ -101,6 +107,7 @@ def main():
 
     if args.init:
 
+      # Create and initiailize database and table
       try:
         with conx.cursor() as cursor:
           #Create table and initialize data.
