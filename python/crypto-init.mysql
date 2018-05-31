@@ -1,11 +1,11 @@
 CREATE DATABASE crypto;
 
 CREATE TABLE crypto.credentials (
-  'user_id' int(11) NOT NULL AUTO_INCREMENT,
-  'Hostname' varchar(100) NOT NULL,
-  'Password' varchar(100) NOT NULL,
-  'DateStamp' datetime NOT NULL,
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `Hostname` varchar(100) NOT NULL,
+  `Password` varchar(100) NOT NULL,
+  `DateStamp` datetime NOT NULL,
   PRIMARY KEY (user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';
 
 INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( 'no_one', 'nothing', '2018-05-29 22:41:50');

@@ -36,8 +36,7 @@ def crypto_string(DATA, KEY, ACTION):
 
 def main():
 
-    conx = pymysql.connect(host='192.168.232.9', user='lorenzo', passwd='Fuxm3Running!', db='crypto')
-    cur = conx.cursor()
+    conx = pymysql.connect(host='127.0.0.1', user='lorenzo', passwd='Whut3v4mang!', db='crypto', cursorclass=pymysql.cursors.DictCursor)
 
     if args.encrypt:
       cipher_key = Fernet.generate_key()
@@ -60,22 +59,24 @@ def main():
         sys.exit()
 
       string = str.encode(password)
-      encrypted_text = crypto_string(string, cipher_key, 'encrypt')
-      print(encrypted_text)
-
-      push_data = ("""UPDATE credentials SET Hostname=%s Password=%s DateStamp=%s WHERE id=%s""", 
-                   (host_name, encrypted_text, now, '1'))
-
-      push_data = ("""INSERT INTO credentials (Hostname, Password, DateStamp) VALUES (%s, %s, %s)""",
-                   (host_name, encrypted_text, now))
-
-      cur.execute(push_data)
-
+      encrypted_text = bytes.decode(crypto_string(string, cipher_key, 'encrypt'))
 
       try:
-        os.remove(filename)
-      except OSError:
-        pass
+        with conx.cursor() as cursor:
+          # Create a new record
+          push_data = "UPDATE credentials SET Hostname=%s, Password=%s, DateStamp=%s WHERE user_id=%s"
+          cursor.execute(push_data,(host_name, encrypted_text, now, 1))
+
+        conx.commit()
+
+      finally:
+        conx.close()
+
+      #try:
+      #  os.remove(password_file)
+      #except OSError:
+      #  pass
+
 
     if args.decrypt:
       encrypted_text =  'gAAAAABbBI9Ca0ADXQ6FZQb1D9UwDx6XVdJFzjsIH2-06oUJnZspD2Y7TRAwMPoCH6CbrfeyznNVXzJ8pCgAxxwbPoFc9x7ACQ=='
@@ -86,9 +87,6 @@ def main():
 
       decrypted_text = crypto_string(str.encode(encrypted_text), cipher_key, 'decrypt')
       print(bytes.decode(decrypted_text))
-
-    #cur.close()
-    #conn.close()
 
 
 main()
