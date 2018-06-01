@@ -76,10 +76,10 @@ def main():
         conx.close()
 
       # Delete password file from filesystem
-      #try:
-      #  os.remove(password_file)
-      #except OSError:
-      #  pass
+      try:
+        os.remove(password_file)
+      except OSError:
+        pass
 
 
     if args.decrypt:
@@ -111,7 +111,7 @@ def main():
       try:
         with conx.cursor() as cursor:
           #Create table and initialize data.
-          create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT,              `Hostname` varchar(100) NOT NULL,`Password` varchar(100) NOT NULL,`DateStamp` datetime NOT NULL,                            PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
+          create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT, `Hostname` varchar(100) NOT NULL,`Password` varchar(100) NOT NULL,`DateStamp` datetime NOT NULL, PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
 
           init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( %s, 'nothing', %s);"
 
