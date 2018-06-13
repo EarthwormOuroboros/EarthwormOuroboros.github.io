@@ -24,10 +24,16 @@ fi
 # Change the string to something resonable.
 PROMPT_STRING=""
 
+# Set info string if not set above.
 if [ -z "${PROMPT_STRING}" ] && [ -f /etc/os-release ]
 then
+  # Get info from newer systems
   . /etc/os-release
   PROMPT_STRING="${PRETTY_NAME}"
+elif [ -z "${PROMPT_STRING}" ] && [ -f /etc/redhat-release ]
+then
+  # Handle RHEL/CentOS 6
+  PROMPT_STRING="$(cat /etc/redhat-release)"
 fi
 
 # DO NOT change anything beyond this point!!!  ...Unless you know what you're doing.
