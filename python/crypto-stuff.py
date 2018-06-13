@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os,sys,socket,argparse,time,pymysql
+import os,sys,socket,argparse,time
+import pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
 
@@ -115,7 +116,7 @@ def main():
 
           init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( %s, 'nothing', %s);"
 
-          #cursor.execute(create_data)
+          cursor.execute(create_data)
           cursor.execute(init_data,(host_name, now))
           encrypted_data = cursor.fetchone()
 
