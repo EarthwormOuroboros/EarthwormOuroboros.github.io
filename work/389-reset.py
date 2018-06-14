@@ -66,15 +66,14 @@ def main():
 
       # Save encrypted string to DB
       try:
-        with conx.cursor() as cursor:
-          # Create a new record
-          push_data = "UPDATE credentials SET Hostname=%s, Password=%s, DateStamp=%s WHERE user_id=%s"
-          cursor.execute(push_data,(host_name, encrypted_text, now, 1))
-
-        conx.commit()
+        # Create a new record
+        push_data = "UPDATE credentials SET Hostname='%s', Password='%s', DateStamp='%s' WHERE user_id=%s" % (host_name, encrypted_text, now, 1)
+        cur.execute(push_data)
+        db.commit()
 
       finally:
-        conx.close()
+        cur.close()
+        db.close()
 
       # Delete password file from filesystem
       try:
@@ -90,33 +89,36 @@ def main():
 
       # Get encrypted password from DB
       try:
-        with conx.cursor() as cursor:
-          # Read record
-          pull_data = "SELECT Password FROM credentials WHERE user_id=%s"
-          cursor.execute(pull_data,(1))
-          encrypted_data = cursor.fetchone()
-
-        conx.commit()
+        # Read record
+        pull_data = "SELECT Password FROM credentials WHERE user_id=1"
+        cur.execute(pull_data)
+        encrypted_data = cur.fetchone()
+        db.commit()
 
       finally:
-        conx.close()
+        cur.close()
+        db.close()
 
-      encrypted_str = encrypted_data.get('Password')
+      encrypted_str = str(encrypted_data)
       decrypted_text = crypto_string(str.encode(encrypted_str), cipher_key, 'decrypt')
       print(bytes.decode(decrypted_text))
 
 
     if args.init:
 
-      # Create and initiailize database and table
+      # Create and initiailize database and table to verify DB perms are correct.
       try:
-        #Create table and initialize data.
-        create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT, `Hostname` varchar(100) NOT NULL,`Password` varchar(100) NOT NULL,`DateStamp` datetime NOT NULL, PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
-
-        init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( %s, 'nothing', %s);" % (host_name, now)
-
+        #Create table.
+        create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT, `Hostname` varchar(100) NOT NULL,`Password` varchar(200) NOT NULL,`DateStamp` datetime NOT NULL, PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
+        #print(create_table)
         cur.execute(create_table)
+
+        # Initialize data
+        init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( '%s', 'nothing', '%s');" % (host_name, now)
+        #print(init_data)
         cur.execute(init_data)
+        db.commit()
+
       except MySQLdb.Error as err:
           print(err)
 
