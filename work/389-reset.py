@@ -1,9 +1,13 @@
 #!/usr/bin/env python2
 
-import os,sys,socket,argparse,time
+import os,sys,socket,argparse,time,getpass
+import hashlib,base64
 import MySQLdb
-from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    from cryptography.fernet import Fernet
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d","--decrypt",action="store_true",
@@ -17,8 +21,10 @@ args = parser.parse_args()
 
 # Set some global stuff
 host_name = socket.gethostname()
+user_name = getpass.getuser()
 now = time.strftime('%Y-%m-%d %H:%M:%S')
 key_file = os.path.expanduser('~') + os.sep + '.iok'
+hash_file = os.path.expanduser('~') + os.sep + '389-refresh' + os.sep + '.389sec'
 password_file = os.path.expanduser('~') + os.sep + '.iok_secret'
 
 
@@ -34,12 +40,27 @@ def crypto_string(DATA, KEY, ACTION):
     return data
 
 
+def hash_string(DATA):
+    digest = hashlib.sha1(DATA.encode('utf-8')).digest()
+    return base64.b64encode(digest)
+
+
 def main():
 
     db = MySQLdb.connect(read_default_file="~/.samy_io", db='crypto')
     cur = db.cursor()
 
-    if args.encrypt:
+    if args.encrypt and user_name == 'ds389':
+      # Read password from filesystem
+      try:
+        password = open(password_file, 'rt').read()
+
+      except IOError:
+        print ('Could not open password file: ' + password_file)
+        print ('Bye!!!')
+        sys.exit()
+
+      # Generate new key
       cipher_key = Fernet.generate_key()
 
       # Write key to file
@@ -51,13 +72,14 @@ def main():
         print ('Bye!!!')
         sys.exit()
 
+      hash = '{SHA}' + hash_string(password)
 
-      # Read password from filesystem
+      # Write hash to file
       try:
-        password = open(password_file, 'rt').read()
+        open(hash_file, 'wt').write(hash)
 
       except IOError:
-        print ('Could not open password file: ' + password_file)
+        print ('Could not open hash file: ' + hash_file)
         print ('Bye!!!')
         sys.exit()
 
@@ -104,7 +126,7 @@ def main():
       print(bytes.decode(decrypted_text))
 
 
-    if args.init:
+    if args.init and user_name == 'ds389':
 
       # Create and initiailize database and table to verify DB perms are correct.
       try:
