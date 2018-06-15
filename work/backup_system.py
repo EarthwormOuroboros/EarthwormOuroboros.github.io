@@ -46,7 +46,7 @@ def create_archive(PATHS, ARCHIVE):
             tf.add(path, arcname=arc_path)
 
 def directory_check(NAME, PATH):
-    # Create archive directory if it isn't already there
+    # Create directory if it isn't already there
     if os.path.exists(PATH):
         msg = 'Using existing %s directory: %s' % (NAME, PATH)
     else:
