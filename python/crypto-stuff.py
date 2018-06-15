@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os,sys,socket,argparse,time
+import hashlib,base64
 import pymysql
 from cryptography.fernet import Fernet
 from datetime import date, datetime, timedelta
@@ -33,6 +34,10 @@ def crypto_string(DATA, KEY, ACTION):
 
     return data
 
+
+def hash_string(DATA):
+    digest = hashlib.sha1(DATA.encode('utf-16-le')).digest()
+    return base64.b64encode(digest)
 
 def main():
 
