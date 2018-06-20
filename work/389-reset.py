@@ -23,7 +23,7 @@ args = parser.parse_args()
 host_name = socket.gethostname()
 user_name = getpass.getuser()
 now = time.strftime('%Y-%m-%d %H:%M:%S')
-key_file = os.path.expanduser('~') + os.sep + '.iok'
+key_file = '/usr/local/share/389ds/.iok'
 hash_file = os.path.expanduser('~') + os.sep + '389-refresh' + os.sep + '.389sec'
 password_file = os.path.expanduser('~') + os.sep + '.iok_secret'
 
