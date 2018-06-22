@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import os,sys,socket,argparse,time,getpass
+import os,sys,socket,argparse,time,getpass,subprocess
 import hashlib,base64
 import MySQLdb
 from datetime import date, datetime, timedelta
@@ -53,7 +53,7 @@ def main():
     if args.encrypt and user_name == 'ds389':
       # Read password from filesystem
       try:
-        password = open(password_file, 'rt').read()
+        password = open(password_file, 'rt').read().rstrip()
 
       except IOError:
         print ('Could not open password file: ' + password_file)
@@ -72,15 +72,23 @@ def main():
         print ('Bye!!!')
         sys.exit()
 
-      hash = '{SHA}' + hash_string(password)
-
+      #hash = '{SHA}' + hash_string(password)
       # Write hash to file
-      try:
-        open(hash_file, 'wt').write(hash)
+      #try:
+      #  open(hash_file, 'wt').write(hash)
 
-      except IOError:
-        print ('Could not open hash file: ' + hash_file)
-        print ('Bye!!!')
+      #except IOError:
+      #  print ('Could not open hash file: ' + hash_file)
+      #  print ('Bye!!!')
+      #  sys.exit()
+
+      hash_cmd = "hashit.pl %s | /bin/awk '/SHA/ {print $2}' > ~/389-refresh/.389sec" % (password)
+      try:
+        process = subprocess.Popen(hash_cmd, executable="/bin/bash", shell=True)
+
+      except OSError:
+        print ('Failure running command.')
+        print (hash_cmd)
         sys.exit()
 
       string = str.encode(password)
