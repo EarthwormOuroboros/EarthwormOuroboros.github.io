@@ -54,7 +54,6 @@ def main():
       # Read password from filesystem
       try:
         password = open(password_file, 'rt').read().rstrip()
-
       except IOError:
         print ('Could not open password file: ' + password_file)
         print ('Bye!!!')
@@ -66,7 +65,6 @@ def main():
       # Write key to file
       try:
         open(key_file, 'wt').write(bytes.decode(cipher_key))
-
       except IOError:
         print ('Could not open key file: ' + key_file)
         print ('Bye!!!')
@@ -76,7 +74,6 @@ def main():
       # Write hash to file
       #try:
       #  open(hash_file, 'wt').write(hash)
-
       #except IOError:
       #  print ('Could not open hash file: ' + hash_file)
       #  print ('Bye!!!')
@@ -85,7 +82,6 @@ def main():
       hash_cmd = "hashit.pl %s | /bin/awk '/SHA/ {print $2}' > ~/389-refresh/.389sec" % (password)
       try:
         process = subprocess.Popen(hash_cmd, executable="/bin/bash", shell=True)
-
       except OSError:
         print ('Failure running command.')
         print (hash_cmd)
@@ -100,7 +96,6 @@ def main():
         push_data = "UPDATE credentials SET Hostname='%s', Password='%s', DateStamp='%s' WHERE user_id=%s;" % (host_name, encrypted_text, now, 1)
         cur.execute(push_data)
         db.commit()
-
       finally:
         cur.close()
         db.close()
@@ -124,7 +119,6 @@ def main():
         cur.execute(pull_data)
         encrypted_data = cur.fetchone()
         db.commit()
-
       finally:
         cur.close()
         db.close()
@@ -141,15 +135,12 @@ def main():
         #Create table.
         create_table = "CREATE TABLE crypto.credentials (`user_id` int(11) NOT NULL AUTO_INCREMENT, `Hostname` varchar(100) NOT NULL,`Password` varchar(200) NOT NULL,`DateStamp` datetime NOT NULL, PRIMARY KEY (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User Credentials';"
         cur.execute(create_table)
-
         # Initialize data
         init_data = "INSERT INTO crypto.credentials (Hostname, Password, DateStamp) VALUES ( '%s', 'nothing', '%s');" % (host_name, now)
         cur.execute(init_data)
         db.commit()
-
       except MySQLdb.Error as err:
         print(err)
-
       finally:
         cur.close()
         db.close()
