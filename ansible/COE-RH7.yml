@@ -5,7 +5,7 @@
   - include: create_users.yml user={{item}}
     with_items:
     - witadmin
-    - dan
+    - jboss
     - kate
 
 - name: Install VIM
