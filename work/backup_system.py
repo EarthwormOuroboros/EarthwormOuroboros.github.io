@@ -54,7 +54,7 @@ def directory_check(NAME, PATH):
         msg = 'Creating %s directory: %s' % (NAME, PATH)
     return msg
 
-def sendToServer(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
+def scp_file(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
     # Transfer file
     try:
         key = paramiko.RSAKey.from_private_key_file(KEY_FILE)
@@ -162,7 +162,7 @@ def main():
 
             # END remote section
 
-        # Handle Mysql section.
+        # Handle MySQL section.
         if 'mysql' in section:
             mysql_host = config.get(section, 'host') 
             logging.info('MySQL Host:' + mysql_host)
@@ -173,6 +173,19 @@ def main():
             else:
                 mysql_port = config.get(section, 'port')
                 logging.info('MySQL Port:' + mysql_port)
+
+            # Schema list to backup.
+            mysql_schema_list = config.get(section, 'schemas').split(",")
+
+            # END mysql section
+
+        # Handle Gerrit section.
+        if 'gerrit' in section:
+            gerrit_host = config.get(section, 'host') 
+            logging.info('MySQL Host:' + mysql_host)
+
+            # Location to backup.
+            gerrit_base = config.get(section, 'base_dir')
 
             # Schema list to backup.
             mysql_schema_list = config.get(section, 'schemas').split(",")
@@ -195,7 +208,7 @@ def main():
     # Create archive.
     create_archive(source_paths, archive_path)
     # Send archive file to remote system.
-    sendToServer(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
+    scp_file(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
 
 main()
 
