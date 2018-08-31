@@ -64,12 +64,10 @@ if [ ! -e "${LOGFILEDIR}" ] ; then
   makeitso
 fi
 
-# Set log files.
+# Set log file.
 LOGFILE="${LOGFILEDIR}/backup_redisdb_${DATESTAMP}.log"
-ERRFILE="${LOGFILEDIR}/backup_redisdb_${DATESTAMP}.err"
-# Redirect stdout (1) and stderr (2) to log files.
-exec 1>${LOGFILE}
-exec 2>${ERRFILE}
+# Redirect stdout (1) and stderr (2) to log file.
+exec >${LOGFILE} 2>&1
 
 bakup () {
     echo -e "\n** Hostname: ${HOSTNAME}"
@@ -116,7 +114,7 @@ bakup () {
       if [ -f ${BAKUP_DPATH}/.${FILE_BASE_NAME} ]
       then
         ARCFILE_OLD=$(cat ${BAKUP_DPATH}/.${FILE_BASE_NAME})
-        CMD="ssh backup@alb-ops-mon ls -la ${BACKUP_PATH}/${ARCFILE}"
+        CMD="ssh backup@${BACKUP_SERVER} ls -la ${BACKUP_PATH}/${ARCFILE}"
         if (eval ${CMD})
         then
           # Remove old remote archive.

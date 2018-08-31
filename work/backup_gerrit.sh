@@ -14,8 +14,11 @@ export GERRIT_HOME='/srv/gerrit'
 # Here's where the archive file will be placed.
 ARCHIVE_DIR='/mnt/backup'
 
+# Set the ARCHIVE_FILE name.
+ARCHIVE_FILE="${ARCHIVE_DIR}/${HOSTNAME}-gerrit.tar.gz"
+
 # This is the destination and staging for the backup files.
-BAKUP_DIR='/root/backup'
+BAKUP_DIR='/home/rudebwoy/backup'
 
 # This is where all the log files will be deposited.
 BAKUP_LOG=${BAKUP_DIR}/log
@@ -31,7 +34,6 @@ BACKUP_SERVER_PATH="/mnt/backups/${HOSTNAME}"
 
 # set the log file
 LOGFILE=${BAKUP_LOG}/backup-gerrit_${DATESTAMP}.log
-DEBUGFILE=${BAKUP_LOG}/backup-gerrit_${DATESTAMP}.debug
 
 help() {
     echo "Display Help"
@@ -69,11 +71,13 @@ makeitso() {
 }
 
 #####################################################################
-#
 # Main
-#
 #####################################################################
 
+# Redirect stdout (1) and stderr (2) to log file.
+exec > ${LOGFILE} 2>&1
+
+# Handle command line optionts.
 if [ -z $1 ]; then
     # No option
     echo -e "No option specified"
@@ -82,9 +86,6 @@ elif [ $1 == "-d" ]; then
     # Set debug mode
     DEBUG=DEBUG
     echo "Debug Mode"
-    # Redirect stdout (1) and stderr (2) to log files.
-    exec 1>${LOGFILE}
-    exec 2>${DEBUGFILE}
 elif [ $1 == "-h" ]; then
     # Display help / usage
     help
@@ -96,9 +97,6 @@ makeitso
 
 # Backup the DB
 bakup db
-
-# Set the ARCHIVE_FILE name.
-ARCHIVE_FILE="${ARCHIVE_DIR}/${HOSTNAME}-gerrit.tar.gz"
 
 # Backup the file system.  This also creates the archive file.
 bakup gerrit
