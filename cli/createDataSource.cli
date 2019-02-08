@@ -1,4 +1,4 @@
-# Create Data Source in Wildfly 10 / JBoss EAP 7
+# Create Data Source in Wildfly / JBoss
 # Requires a properties file to provide the values.
 
 set jdbcUrl=${jdbcUrl}  
