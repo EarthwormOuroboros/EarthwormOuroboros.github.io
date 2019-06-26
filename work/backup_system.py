@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os,time,tarfile,logging,io,socket
+import os,time,tarfile,logging,io,socket,subprocess
 import configparser,argparse,getpass
 import paramiko
 import smtplib
@@ -79,6 +79,19 @@ def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     server = smtplib.SMTP('localhost')
     server.sendmail(FROM, TO, message)
     server.quit()
+
+def mysql_bu(host, user, creds, schemas):
+    try:
+        timestamp = str(int(time.time()))
+        p = subprocess.Popen("mysqldump -h" + host + " -u" + user + " -p'" + creds + "' --all-databases > dump_" + host + "_" + timestamp + ".sql", shell=True)
+        # Wait for completion
+        p.communicate()
+        # Check for errors
+        if(p.returncode != 0):
+            raise
+        print("Backup done for", host)
+    except:
+        print("Backup failed for", host)
 
 def main():
     # System data
@@ -167,7 +180,7 @@ def main():
             mysql_host = config.get(section, 'host') 
             logging.info('MySQL Host:' + mysql_host)
 
-            if config.has_option(section, 'socket'):
+            if config.has_option(section, 'socket') and mysql_host == 'localhost':
                 mysql_socket = config.get(section, 'socket')
                 logging.info('MySQL Socket:' + mysql_socket)
             else:
@@ -177,20 +190,23 @@ def main():
             # Schema list to backup.
             mysql_schema_list = config.get(section, 'schemas').split(",")
 
-            # END mysql section
+            # END MySQL section
 
         # Handle Gerrit section.
         if 'gerrit' in section:
-            gerrit_host = config.get(section, 'host') 
-            logging.info('MySQL Host:' + mysql_host)
-
             # Location to backup.
             gerrit_base = config.get(section, 'base_dir')
+            logging.info('Gerrit Base Directory:' + gerrit_base)
 
-            # Schema list to backup.
-            mysql_schema_list = config.get(section, 'schemas').split(",")
+            # END gerrit section
 
-            # END mysql section
+        # Handle Redis section.
+        if 'redis' in section:
+            # Location to backup.
+            redis_base = config.get(section, 'base_dir')
+            logging.info('Redis Base Directory:' + redis_base)
+
+            # END Redis section
 
         # Pretty much done with groking sections. l8!!!
         # Print some useful info to terminal. Useful for dev and debug.
@@ -208,7 +224,7 @@ def main():
     # Create archive.
     create_archive(source_paths, archive_path)
     # Send archive file to remote system.
-    scp_file(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
+    #scp_file(remote_host,remote_port,remote_user,key_file,archive_path,remote_path)
 
 main()
 
