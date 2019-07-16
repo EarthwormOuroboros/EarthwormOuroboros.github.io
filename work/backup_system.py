@@ -44,6 +44,8 @@ def create_archive(PATHS, ARCHIVE):
             arc_path = path.replace('/', '-').replace('-', '', 1)
             logging.info('In-Archive Path: ' + arc_path)
             tf.add(path, arcname=arc_path)
+    logging.info('Archive Complete.')
+
 
 def directory_check(NAME, PATH):
     # Create directory if it isn't already there
@@ -53,6 +55,7 @@ def directory_check(NAME, PATH):
         os.makedirs(PATH) # make directory
         msg = 'Creating %s directory: %s' % (NAME, PATH)
     return msg
+
 
 def scp_file(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
     # Transfer file
@@ -65,6 +68,7 @@ def scp_file(HOST,PORT,USER,KEY_FILE,LOCAL_FILE,REMOTE_FILE):
 
     finally:
         t.close()
+
 
 def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     # Email message
@@ -80,18 +84,28 @@ def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     server.sendmail(FROM, TO, message)
     server.quit()
 
-def mysql_bu(host, user, creds, schemas):
+
+def mysql_bu(HOST, CREDS, SCHEMAS):
     try:
         timestamp = str(int(time.time()))
-        p = subprocess.Popen("mysqldump -h" + host + " -u" + user + " -p'" + creds + "' --all-databases > dump_" + host + "_" + timestamp + ".sql", shell=True)
+
+        if (SCHEMA = 'all'):
+            mydumpoptions = '--routines --events --set-gtid-purged=on --opt --all-databases';
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+
+        else:
+            mydumpoptions = '--routines --events --set-gtid-purged=on --opt';
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + SCHEMAS + " > dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+
         # Wait for completion
         p.communicate()
         # Check for errors
-        if(p.returncode != 0):
+        if (p.returncode != 0):
             raise
         print("Backup done for", host)
     except:
         print("Backup failed for", host)
+
 
 def main():
     # System data
@@ -180,15 +194,24 @@ def main():
             mysql_host = config.get(section, 'host') 
             logging.info('MySQL Host:' + mysql_host)
 
-            if config.has_option(section, 'socket') and mysql_host == 'localhost':
-                mysql_socket = config.get(section, 'socket')
-                logging.info('MySQL Socket:' + mysql_socket)
-            else:
-                mysql_port = config.get(section, 'port')
-                logging.info('MySQL Port:' + mysql_port)
+            if config.has_option(section, 'defaults_extra_file'):
+                mysql_defex = config.get(section, 'defaults_extra_file')
+                
+            if os.path.exists(mysql_defex):
+                logging.info('MySQL Defaults Extra File:' + mysql_defex)
+
+            #else:
+            #    if config.has_option(section, 'socket') and mysql_host == 'localhost':
+            #        mysql_socket = config.get(section, 'socket')
+            #        logging.info('MySQL Socket:' + mysql_socket)
+            #    else:
+            #        mysql_port = config.get(section, 'port')
+            #        logging.info('MySQL Port:' + mysql_port)
 
             # Schema list to backup.
             mysql_schema_list = config.get(section, 'schemas').split(",")
+
+            
 
             # END MySQL section
 
