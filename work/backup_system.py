@@ -89,22 +89,22 @@ def mysql_bu(HOST, CREDS, SCHEMAS):
     try:
         timestamp = str(int(time.time()))
 
-        if (SCHEMA = 'all'):
+        if (SCHEMA == 'all'):
             mydumpoptions = '--routines --events --set-gtid-purged=on --opt --all-databases';
-            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > " + LOCATION + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         else:
             mydumpoptions = '--routines --events --set-gtid-purged=on --opt';
-            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + SCHEMAS + " > dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + SCHEMAS + " > " + LOCATION + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         # Wait for completion
         p.communicate()
         # Check for errors
         if (p.returncode != 0):
             raise
-        print("Backup done for", host)
+        print("Backup done for", HOST)
     except:
-        print("Backup failed for", host)
+        print("Backup failed for", HOST)
 
 
 def main():
@@ -193,6 +193,12 @@ def main():
         if 'mysql' in section:
             mysql_host = config.get(section, 'host') 
             logging.info('MySQL Host:' + mysql_host)
+            
+            mysql_base = config.get(section, 'base_dir')
+            if not mysql_base.startswith('/'):
+                mysql_base = os.path.expanduser('~') + os.sep + config.get(section, 'base_dir')
+            
+            logging.info('MySQL Base Directory:' + mysql_base)
 
             if config.has_option(section, 'defaults_extra_file'):
                 mysql_defex = config.get(section, 'defaults_extra_file')
@@ -209,6 +215,7 @@ def main():
             #        logging.info('MySQL Port:' + mysql_port)
 
             # Schema list to backup.
+            
             mysql_schema_list = config.get(section, 'schemas').split(",")
 
             
