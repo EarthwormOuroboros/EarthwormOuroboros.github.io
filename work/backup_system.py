@@ -85,26 +85,30 @@ def sendMail(FROM,TO,SUBJECT,TEXT,ATTACHMENT):
     server.quit()
 
 
-def mysql_bu(HOST, CREDS, SCHEMAS):
+def mysql_bu(HOST, CREDS, SCHEMAS, LOCATION):
     try:
         timestamp = str(int(time.time()))
 
-        if (SCHEMA == 'all'):
-            mydumpoptions = '--routines --events --set-gtid-purged=on --opt --all-databases';
-            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > " + LOCATION + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+        schemas = ' '.join(SCHEMAS)
+
+        if (schemas == 'all'):
+            mydumpoptions = ' --routines --events --opt --all-databases';
+            #mydumpoptions = ' --routines --events --set-gtid-purged=on --opt --all-databases';
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > " + LOCATION + os.sep + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         else:
-            mydumpoptions = '--routines --events --set-gtid-purged=on --opt';
-            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + SCHEMAS + " > " + LOCATION + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
+            mydumpoptions = ' --routines --events --opt --databases ';
+            #mydumpoptions = ' --routines --events --set-gtid-purged=on --opt';
+            p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + schemas + " > " + LOCATION + os.sep + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         # Wait for completion
         p.communicate()
         # Check for errors
         if (p.returncode != 0):
             raise
-        print("Backup done for", HOST)
+        logging.info("MySQL dump completed for", HOST)
     except:
-        print("Backup failed for", HOST)
+        logging.info("MySQL dump failed for", HOST)
 
 
 def main():
@@ -181,30 +185,32 @@ def main():
             remote_host = config.get(section, 'host')
             remote_path = config.get(section, 'path') + os.sep + archive_name
 
-            logging.info('Remote User:' + remote_user)
-            logging.info('Remote Host:' + remote_host)
-            logging.info('Remote Port:' + str(remote_port))
-            logging.info('Remote Path:' + remote_path)
-            logging.info('Key File:' + key_file)
+            logging.info('Remote User: ' + remote_user)
+            logging.info('Remote Host: ' + remote_host)
+            logging.info('Remote Port: ' + str(remote_port))
+            logging.info('Remote Path: ' + remote_path)
+            logging.info('Key File: ' + key_file)
 
             # END remote section
 
         # Handle MySQL section.
         if 'mysql' in section:
             mysql_host = config.get(section, 'host') 
-            logging.info('MySQL Host:' + mysql_host)
+            logging.info('MySQL Host: ' + mysql_host)
             
             mysql_base = config.get(section, 'base_dir')
             if not mysql_base.startswith('/'):
                 mysql_base = os.path.expanduser('~') + os.sep + config.get(section, 'base_dir')
             
-            logging.info('MySQL Base Directory:' + mysql_base)
+            mysql_msg = directory_check('mysql', mysql_base)
+            logging.debug(mysql_msg)
+            logging.info('MySQL Base Directory: ' + mysql_base)
 
             if config.has_option(section, 'defaults_extra_file'):
                 mysql_defex = config.get(section, 'defaults_extra_file')
                 
             if os.path.exists(mysql_defex):
-                logging.info('MySQL Defaults Extra File:' + mysql_defex)
+                logging.info('MySQL Defaults Extra File: ' + mysql_defex)
 
             #else:
             #    if config.has_option(section, 'socket') and mysql_host == 'localhost':
@@ -218,7 +224,7 @@ def main():
             
             mysql_schema_list = config.get(section, 'schemas').split(",")
 
-            
+            mysql_bu(mysql_host, mysql_defex, mysql_schema_list, mysql_base)
 
             # END MySQL section
 
@@ -226,7 +232,7 @@ def main():
         if 'gerrit' in section:
             # Location to backup.
             gerrit_base = config.get(section, 'base_dir')
-            logging.info('Gerrit Base Directory:' + gerrit_base)
+            logging.info('Gerrit Base Directory: ' + gerrit_base)
 
             # END gerrit section
 
@@ -234,7 +240,7 @@ def main():
         if 'redis' in section:
             # Location to backup.
             redis_base = config.get(section, 'base_dir')
-            logging.info('Redis Base Directory:' + redis_base)
+            logging.info('Redis Base Directory: ' + redis_base)
 
             # END Redis section
 
