@@ -92,13 +92,11 @@ def mysql_bu(HOST, CREDS, SCHEMAS, LOCATION):
         schemas = ' '.join(SCHEMAS)
 
         if (schemas == 'all'):
-            mydumpoptions = ' --routines --events --opt --all-databases';
-            #mydumpoptions = ' --routines --events --set-gtid-purged=on --opt --all-databases';
+            mydumpoptions = ' --routines --events --opt --all-databases ';
             p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + " > " + LOCATION + os.sep + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         else:
             mydumpoptions = ' --routines --events --opt --databases ';
-            #mydumpoptions = ' --routines --events --set-gtid-purged=on --opt';
             p = subprocess.Popen("mysqldump --defaults-extra-file=" + CREDS + mydumpoptions + schemas + " > " + LOCATION + os.sep + "dump_" + HOST + "_" + timestamp + ".mysql", shell=True)
 
         # Wait for completion
@@ -106,9 +104,9 @@ def mysql_bu(HOST, CREDS, SCHEMAS, LOCATION):
         # Check for errors
         if (p.returncode != 0):
             raise
-        logging.info("MySQL dump completed for", HOST)
+        logging.info("MySQL dump completed for " + HOST)
     except:
-        logging.info("MySQL dump failed for", HOST)
+        logging.info("MySQL dump failed for " + HOST)
 
 
 def main():
@@ -223,6 +221,9 @@ def main():
             # Schema list to backup.
             
             mysql_schema_list = config.get(section, 'schemas').split(",")
+
+            logging.info("Adding " + mysql_base + " to backup sources.")
+            sources+=[mysql_base]
 
             mysql_bu(mysql_host, mysql_defex, mysql_schema_list, mysql_base)
 
