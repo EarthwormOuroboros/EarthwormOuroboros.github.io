@@ -1,0 +1,17 @@
+---
+# File: roles/general/tasks/test_remote_copy.yml
+
+- hosts: all
+  become_user: root
+
+  tasks:
+    - name: Remote Copy - test_copy
+      copy:
+        src: ../files/test_copy
+        dest: /etc/test_copy
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes
+      become: yes
+      become_method: sudo

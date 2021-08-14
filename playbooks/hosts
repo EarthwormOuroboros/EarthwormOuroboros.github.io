@@ -1,0 +1,21 @@
+# playbooks/hosts
+
+
+#[Nginx]
+
+#[Redis]
+
+#[PostgreSQL]
+
+#[MariaDB]
+
+#[WildFly]
+
+#[KeyCloak]
+
+#[Elasticsearch]
+
+#[LibreNMS]
+
+#[Wikijs]
+
