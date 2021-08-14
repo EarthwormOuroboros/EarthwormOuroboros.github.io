@@ -1,0 +1,39 @@
+- hosts: all
+  user: rudebwoy
+  #become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Ping
+      ping:
+
+    - name: Remote ID
+      shell: id
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
+
+    - name: uname
+      shell: uname -a
+      register: shell_result
+    - debug:
+        var: shell_result.stdout_lines
+
+    - name: OS Distro
+      debug:
+        msg: "{{ ansible_distribution }}"
+
+    - name: OS Version
+      debug:
+        msg: "{{ ansible_distribution_version}}"
+
+    - name: OS Major Version
+      debug:
+        msg: "{{ ansible_distribution_major_version }}"
+
+#- import_playbook:
+#    - common/main.yml
+#    - syslog/main.yml
+#    - ntp/main.yml
+#    - resolv/main.yml
+#    - audit/main.yml
