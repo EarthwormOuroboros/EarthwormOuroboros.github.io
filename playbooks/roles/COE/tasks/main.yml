@@ -41,27 +41,21 @@
 
   # Update all packages on RHEL and CentOS 8 systems.
   - name: Update all packages (Red Hat 8)
-    dnf:
-      name: "*"
-      state: latest
+    dnf: name=* state=latest update_cache=yes
     when:
       - ansible_facts['distribution'] == "RedHat" or ansible_facts['distribution'] == "CentOS"
       - ansible_facts['distribution_major_version'] == "8"
 
 # Update all apackages on CentOS 7 systems.
   - name: Update all packages (CentOS 7)
-    yum:
-      name: '*'
-      state: latest
+    yum: name=* state=latest update_cache=yes
     when:
       - ansible_facts['distribution'] == "CentOS"
       - ansible_facts['distribution_major_version'] == "7"
 
 # Update all packages on OpenSUSE systems.
   - name: Update all packages (OpenSUSE)
-    zypper:
-      name: '*'
-      state: latest
+    zypper: name=* state=latest update_cache=yes
     when:
       - ansible_facts['distribution'] == "openSUSE Leap"
       - ansible_facts['distribution_major_version'] == "15"
@@ -112,5 +106,21 @@
       - ansible_facts['distribution'] == "RedHat"
       - ansible_facts['distribution_major_version'] == "8"
 
-#- include: configure.yml
 
+#  import_playbook: foo.yaml
+#    when:
+#      - ansible_facts['distribution'] == "CentOS"
+#      - ansible_facts['distribution_major_version'] == "7"
+
+#  - hosts: localhost
+#    tasks:
+#      - debug:
+#          msg: play1
+
+#  - name: Include a play after another play
+#    import_playbook: otherplays.yaml
+
+#  - name: Set variables on an imported playbook
+#    import_playbook: otherplays.yml
+#    vars:
+#      service: httpd
