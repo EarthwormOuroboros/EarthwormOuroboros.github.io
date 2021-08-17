@@ -1,2 +1,5 @@
 # README.md
-Soon come.
+
+## A collection of System Adminstration tidbits.
+
+Mainly for my benefit.
