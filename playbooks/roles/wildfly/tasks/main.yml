@@ -7,18 +7,16 @@
   become: yes
   become_method: sudo
   vars_files:
-  - /home/witadmin/playbooks/inventories/staging/group_vars/wildfly-latest
+  - /home/witadmin/playbooks/inventories/staging/group_vars/wildfly.yml
 
   tasks:
-  - name: Install JDK - {{ jdk_version }}-headless
+  - name: Install JDK - {{ prod_jdk_version }}-headless
     dnf:
-      name: "{{ jdk_version }}-headless"
-    become: yes
-    become_method: sudo
+      name: "{{ prod_jdk_version }}-headless"
 
   - name: Template file to /etc/profile.d/env-java.sh
     template:
-      src: ../templates/env-java.sh.j2
+      src: ../templates/prod_env-java.sh.j2
       dest: /etc/profile.d/env-java.sh
       owner: root
       group: root
@@ -34,33 +32,29 @@
       password: $6$mt7hvB7IsPbVP92G$hAXmASkv.8rHwT/h/MciLXUFZ7oP3sjUH3SjH85g/Q78OxqfN6tBTlVxn7qW6WFyRYCZBP62qWUN.ABjIcrsD1
       system: yes
       append: yes
-    become: yes
-    become_method: sudo
 
   - name: Check if wildfly is installed
     stat: 
-      path: /opt/wildfly/{{ wildfly_version }}/jboss-modules.jar
+      path: /opt/wildfly/{{ prod_wildfly_version }}/jboss-modules.jar
       #checksum: b5376cd658b8dacb16f46e1819d0d437a20a8bd7
     register: wildfly_installed
 
 #  - import_playbook: install.yml
 #    when: stat_result.stat.exists == False
 
-  - name: Create /opt/wildfly/{{ wildfly_version }}
+  - name: Create /opt/wildfly/{{ prod_wildfly_version }}
     file:
-      path: /opt/wildfly/{{ wildfly_version }}
+      path: /opt/wildfly/{{ prod_wildfly_version }}
       state: directory
       owner: wildfly
       group: wildfly
       mode: '0755'
     #when: stat_result.stat.exists == False
-    become: yes
-    become_method: sudo
 
-  - name: Extract wildfly-{{ wildfly_version }}.tar.gz into /opt/wildfly/{{ wildfly_version }}
+  - name: Extract wildfly-{{ prod_wildfly_version }}.tar.gz into /opt/wildfly/{{ prod_wildfly_version }}
     unarchive:
-      src: ../files/wildfly-{{ wildfly_version }}.tar.gz
-      dest: /opt/wildfly/{{ wildfly_version }}
+      src: ../files/wildfly-{{ prod_wildfly_version }}.tar.gz
+      dest: /opt/wildfly/{{ prod_wildfly_version }}
       extra_opts: [--strip-components=1]
     when: wildfly_installed.stat.exists == False
 
@@ -72,28 +66,26 @@
       owner: wildfly
       group: wildfly
     when: wildfly_installed.stat.exists == False
-    become: yes
-    become_method: sudo
 
   - name: Template file to /etc/profile.d/env-wildfly.sh
     template:
-      src: ../templates/env-wildfly.sh.j2
+      src: ../templates/prod_env-wildfly.sh.j2
       dest: /etc/profile.d/env-wildfly.sh
       owner: root
       group: root
       mode: '0644'
 
-  - name: Template file to /opt/wildfly/{{ wildfly_version }}/bin/launch.sh
+  - name: Template file to /opt/wildfly/{{ prod_wildfly_version }}/bin/launch.sh
     template:
-      src: ../templates/launch.sh.j2
-      dest: /opt/wildfly/{{ wildfly_version }}/bin/launch.sh
+      src: ../templates/prod_launch.sh.j2
+      dest: /opt/wildfly/{{ prod_wildfly_version }}/bin/launch.sh
       owner: wildfly
       group: wildfly
       mode: '0744'
 
   - name: Template file to /etc/systemd/system/wildfly.service
     template:
-      src: ../templates/wildfly.service.j2
+      src: ../templates/prod_wildfly.service.j2
       dest: /etc/systemd/system/wildfly.service
       owner: root
       group: root
@@ -101,7 +93,7 @@
 
   - name: Copy file to /etc/sysconfig/wildfly
     copy:
-      src: ../files/wildfly
+      src: ../files/wildfly.sysconfig
       dest: /etc/sysconfig/wildfly
       owner: root
       group: root
