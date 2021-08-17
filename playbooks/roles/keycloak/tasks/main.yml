@@ -1,0 +1,122 @@
+---
+# tasks file for keycloak
+# filename: roles/keycloak/tasks/main.yml
+
+- hosts: KeyCloak
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars_files:
+  - /home/witadmin/playbooks/group_vars/keycloak-latest.yml
+
+  tasks:
+  - name: Install JDK - {{ jdk_version }}-headless
+    dnf:
+      name: 
+        - "{{ jdk_version }}-headless"
+        - "{{ jdk_version }}-devel"
+      state: latest
+    become: yes
+    become_method: sudo
+
+  - name: Template file to /etc/profile.d/env-java.sh
+    template:
+      src: ../templates/env-java.sh.j2
+      dest: /etc/profile.d/env-java.sh
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Add wildfly system account and group
+    user:
+      name: wildfly
+      #group: wildfly
+      comment: "WildFly Service User Account"
+      home: /home/wildfly
+      shell: /bin/bash
+      password: $6$mt7hvB7IsPbVP92G$hAXmASkv.8rHwT/h/MciLXUFZ7oP3sjUH3SjH85g/Q78OxqfN6tBTlVxn7qW6WFyRYCZBP62qWUN.ABjIcrsD1
+      system: yes
+      append: yes
+    become: yes
+    become_method: sudo
+
+  - name: Check if keycloak is installed
+    stat: 
+      path: /opt/keycloak/{{ keycloak_version }}/jboss-modules.jar
+      #checksum: b5376cd658b8dacb16f46e1819d0d437a20a8bd7
+    register: keycloak_installed
+
+  - name: Create /opt/keycloak/{{ keycloak_version }}
+    file:
+      path: /opt/keycloak/{{ keycloak_version }}
+      state: directory
+      owner: wildfly
+      group: wildfly
+      mode: '0755'
+    become: yes
+    become_method: sudo
+
+  - name: Extract keycloak-{{ keycloak_version }}.tar.gz into /opt/keycloak/{{ keycloak_version }}
+    unarchive:
+      src: ../files/keycloak-{{ keycloak_version }}.tar.gz
+      dest: /opt/keycloak/{{ keycloak_version }}
+      extra_opts: [--strip-components=1]
+    when: keycloak_installed.stat.exists == False
+
+  - name: Recursively change ownership of /opt/keycloak
+    file:
+      path: /opt/keycloak
+      state: directory
+      recurse: yes
+      owner: wildfly
+      group: wildfly
+    when: keycloak_installed.stat.exists == False
+    become: yes
+    become_method: sudo
+
+  - name: Template file to /etc/profile.d/env-keycloak.sh
+    template:
+      src: ../templates/env-keycloak.sh.j2
+      dest: /etc/profile.d/env-keycloak.sh
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Template file to /opt/keycloak/{{ keycloak_version }}/bin/launch.sh
+    template:
+      src: ../templates/launch.sh.j2
+      dest: /opt/keycloak/{{ keycloak_version }}/bin/launch.sh
+      owner: wildfly
+      group: wildfly
+      mode: '0744'
+
+  - name: Template file to /etc/systemd/system/wildfly.service
+    template:
+      src: ../templates/wildfly.service.j2
+      dest: /etc/systemd/system/wildfly.service
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy file to /etc/sysconfig/wildfly
+    copy:
+      src: ../files/wildfly
+      dest: /etc/sysconfig/wildfly
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Reload systemd
+    systemd:
+      daemon_reload: yes
+
+  - name: Enable and start wildfly
+    systemd:
+      name: wildfly
+      state: started
+      enabled: yes
+      masked: no
+
+#- import_playbook: install.yml
+#- import_playbook: configure.yml
+

@@ -1,0 +1,5 @@
+---
+# Variables for WildFly servers.
+jdk_version: java-11-openjdk
+wildfly_version: 20.0.1.Final
+
