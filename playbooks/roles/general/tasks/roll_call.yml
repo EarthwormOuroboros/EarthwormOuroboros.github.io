@@ -2,38 +2,20 @@
   user: rudebwoy
   #become: yes
   gather_facts: yes
-
+  vars:
+    ansible_python_interpreter: auto_silent
+  
   tasks:
     - name: Ping
       ping:
 
-    - name: Remote ID
-      shell: id
-      register: shell_result
-    - debug:
-        var: shell_result.stdout_lines
-
-    - name: uname
-      shell: uname -a
-      register: shell_result
-    - debug:
-        var: shell_result.stdout_lines
-
-    - name: OS Distro
+    - name: Remote System Info
       debug:
-        msg: "{{ ansible_distribution }}"
+        msg:
+        - "Name: {{ ansible_user_gecos }}"
+        - "User(UID,GID): {{ ansible_user_id }}({{ ansible_user_uid }},{{ ansible_user_gid }})"
+        - "Home Directory: {{ ansible_user_dir }}"
+        - "Shell: {{ ansible_user_shell }}"
+        - "Kernel Version: {{ ansible_kernel }} {{ ansible_kernel_version }}"
+        - "Distro: {{ ansible_distribution }} {{ ansible_distribution_major_version }} ({{ ansible_distribution_version}} {{ ansible_distribution_release }})"
 
-    - name: OS Version
-      debug:
-        msg: "{{ ansible_distribution_version}}"
-
-    - name: OS Major Version
-      debug:
-        msg: "{{ ansible_distribution_major_version }}"
-
-#- import_playbook:
-#    - common/main.yml
-#    - syslog/main.yml
-#    - ntp/main.yml
-#    - resolv/main.yml
-#    - audit/main.yml
