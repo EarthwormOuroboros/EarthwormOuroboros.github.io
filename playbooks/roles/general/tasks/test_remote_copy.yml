@@ -2,6 +2,7 @@
 # File: roles/general/tasks/test_remote_copy.yml
 
 - hosts: all
+  user: rudebwoy
   become_user: root
 
   tasks:
