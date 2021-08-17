@@ -13,7 +13,7 @@ User=wildfly
 Group=wildfly
 LimitNOFILE=102642
 PIDFile=/var/run/wildfly/wildfly.pid
-ExecStart=/opt/wildfly/{{ wildfly_version }}/bin/launch.sh $WILDFLY_MODE $WILDFLY_CONF $WILDFLY_BIND $WILDFLY_MGMT
+ExecStart=/opt/wildfly/{{ prod_wildfly_version }}/bin/launch.sh $WILDFLY_MODE $WILDFLY_CONF $WILDFLY_BIND $WILDFLY_MGMT
 StandardOutput=null
 
 [Install]
