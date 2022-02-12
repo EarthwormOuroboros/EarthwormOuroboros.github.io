@@ -106,11 +106,11 @@
       - ansible_facts['distribution'] == "RedHat"
       - ansible_facts['distribution_major_version'] == "8"
 
-
-#  import_playbook: foo.yaml
-#    when:
-#      - ansible_facts['distribution'] == "CentOS"
-#      - ansible_facts['distribution_major_version'] == "7"
+   - name: (Red Hat) Install EPEL Repo
+     import_playbook: install_epel.yml
+     when:
+      - ansible_facts['distribution'] == "RedHat"
+      - ansible_facts['distribution_major_version'] == "8"
 
 #  - hosts: localhost
 #    tasks:
