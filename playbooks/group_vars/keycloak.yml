@@ -1,7 +1,0 @@
----
-# group_vars/keycloak-latest.yml
-
-# Variables for Production Keycloak servers.
-jdk_version: java-1.8.0-openjdk
-keycloak_version: 11.0.2
-
