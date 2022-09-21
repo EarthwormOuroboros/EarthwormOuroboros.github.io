@@ -1,8 +1,8 @@
 #!/bin/sh
-# /opt/wildfly/{{ test_wildfly_version }}/bin/launch.sh
+# /opt/wildfly/{{ wildfly_version }}/bin/launch.sh
 
 if [ "x$WILDFLY_HOME" = "x" ]; then
-    WILDFLY_HOME="/opt/wildfly/{{ test_wildfly_version }}"
+    WILDFLY_HOME="/opt/wildfly/{{ wildfly_version }}"
 fi
 
 if [[ "$1" == "domain" ]]; then

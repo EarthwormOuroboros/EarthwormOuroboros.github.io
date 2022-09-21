@@ -1,3 +1,4 @@
 # playbooks/.gitignore
+*.info
 *.local
 **/*.local

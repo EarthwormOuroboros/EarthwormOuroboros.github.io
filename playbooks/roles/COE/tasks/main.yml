@@ -1,30 +1,17 @@
 ---
 # tasks file for Linux COE
 # filename: roles/COE/tasks/main.yml
-- hosts: all
+- name: Common Operating Environment
+  hosts: all
   user: rudebwoy
   become_user: root
   become: yes
   become_method: sudo
   vars_files:
-  - ../../../group_vars/COE-packages.yml
+  - ../../../group_vars/COE.yml
 
   # Install COE packages...
   tasks:
-  # ...for CentOS 7 systems.
-  - name: Install COE packages (CentOS 7)
-    yum: name={{ CentOS_7_Packages }} state=installed
-    when:
-      - ansible_facts['distribution'] == "CentOS"
-      - ansible_facts['distribution_major_version'] == "7"
-
-  # ...for CentOS 8 systems.
-  - name: Install COE packages (CentOS 8)
-    yum: name={{ CentOS_8_Packages }} state=installed
-    when:
-      - ansible_facts['distribution'] == "CentOS"
-      - ansible_facts['distribution_major_version'] == "8"
-
   # ...for OpenSUSE Leap 15 systems.
   - name: Install COE packages (OpenSUSE Leap 15)
     zypper: name={{ OpenSUSE_15_Packages }} state=installed
@@ -39,33 +26,33 @@
       - ansible_facts['distribution'] == "RedHat"
       - ansible_facts['distribution_major_version'] == "8"
 
-  # Update all packages on RHEL and CentOS 8 systems.
+  # ...for Red Hat Enterprise Linux 8 systems.
+  - name: Install COE packages (RedHat 8)
+    yum: name={{ RedHat_8_Packages }} state=installed
+    when:
+      - ansible_facts['distribution'] == "RedHat"
+      - ansible_facts['distribution_major_version'] == "9"
+
+  # Update all packages on RHEL 8+ systems.
   - name: Update all packages (Red Hat 8)
     dnf: name=* state=latest update_cache=yes
     when:
-      - ansible_facts['distribution'] == "RedHat" or ansible_facts['distribution'] == "CentOS"
-      - ansible_facts['distribution_major_version'] == "8"
+      - ansible_facts['distribution'] == "RedHat"
+      - ansible_facts['distribution_major_version'] =+ "8"
 
-# Update all apackages on CentOS 7 systems.
-  - name: Update all packages (CentOS 7)
-    yum: name=* state=latest update_cache=yes
-    when:
-      - ansible_facts['distribution'] == "CentOS"
-      - ansible_facts['distribution_major_version'] == "7"
-
-# Update all packages on OpenSUSE systems.
+  # Update all packages on OpenSUSE systems.
   - name: Update all packages (OpenSUSE)
     zypper: name=* state=latest update_cache=yes
     when:
       - ansible_facts['distribution'] == "openSUSE Leap"
       - ansible_facts['distribution_major_version'] == "15"
 
-# Update /etc/resolv.conf
+  # Update /etc/resolv.conf
   - name: (OpenSUSE) Set DNS search list
     lineinfile:
       path: /etc/sysconfig/network/config
       regexp: '^NETCONFIG_DNS_STATIC_SEARCHLIST='
-      line: NETCONFIG_DNS_STATIC_SEARCHLIST="cyfd.state.nm.us ad.cyfd.state.nm.us state.nm.us"
+      line: NETCONFIG_DNS_STATIC_SEARCHLIST="yard.lo"
     when:
       - ansible_facts['distribution'] == "openSUSE Leap"
       - ansible_facts['distribution_major_version'] == "15"
@@ -74,7 +61,7 @@
     lineinfile:
       path: /etc/sysconfig/network/config
       regexp: '^NETCONFIG_DNS_STATIC_SERVERS='
-      line: NETCONFIG_DNS_STATIC_SERVERS="10.1.201.31 10.1.201.32 10.148.201.31 10.148.201.32"
+      line: NETCONFIG_DNS_STATIC_SERVERS="192.168.1.9"
     when:
       - ansible_facts['distribution'] == "openSUSE Leap"
       - ansible_facts['distribution_major_version'] == "15"
@@ -112,15 +99,3 @@
       - ansible_facts['distribution'] == "RedHat"
       - ansible_facts['distribution_major_version'] == "8"
 
-#  - hosts: localhost
-#    tasks:
-#      - debug:
-#          msg: play1
-
-#  - name: Include a play after another play
-#    import_playbook: otherplays.yaml
-
-#  - name: Set variables on an imported playbook
-#    import_playbook: otherplays.yml
-#    vars:
-#      service: httpd

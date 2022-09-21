@@ -9,13 +9,50 @@
     - name: Ping
       ping:
 
-    - name: Remote System Info
+    - name: User Info
       debug:
         msg:
         - "Name: {{ ansible_user_gecos }}"
-        - "User(UID,GID): {{ ansible_user_id }}({{ ansible_user_uid }},{{ ansible_user_gid }})"
+        - "User (UID,GID): {{ ansible_user_id }} ({{ ansible_user_uid }},{{ ansible_user_gid }})"
         - "Home Directory: {{ ansible_user_dir }}"
         - "Shell: {{ ansible_user_shell }}"
+
+    - name: System Info
+      debug:
+        msg:
         - "Kernel Version: {{ ansible_kernel }} {{ ansible_kernel_version }}"
         - "Distro: {{ ansible_distribution }} {{ ansible_distribution_major_version }} ({{ ansible_distribution_version}} {{ ansible_distribution_release }})"
+        - "CPU: {{ ansible_processor }}"
+        - "Memory (Real): {{ ansible_memory_mb.real }}"
+        - "Memory (SWAP): {{ ansible_memory_mb.swap }}"
+        - "Memory (Buff): {{ ansible_memory_mb.nocache }}"
+        - "Python Version: {{ ansible_python_version }}"
 
+    - name: Network Info
+      debug:
+        msg:
+        - "Hostname (FQDN)     : {{ ansible_hostname }} ({{ ansible_fqdn }})"
+        - "DNS Domain          : {{ ansible_domain }}"
+        - "DNS Search          : {{ ansible_dns.search }}"
+        - "DNS Servers         : {{ ansible_dns.nameservers }}"
+        - "All IPv4 Addresses  : {{ ansible_all_ipv4_addresses }}"
+        - "All IPv6 Addresses  : {{ ansible_all_ipv6_addresses }}"
+        - "IPv4 (Alias)        : {{ ansible_default_ipv4.interface }} ({{ ansible_default_ipv4.alias }})"
+        - "IPv4 Address (MAC)  : {{ ansible_default_ipv4.address }} ({{ ansible_default_ipv4.macaddress }})"
+        - "IPv4 Netmask        : {{ ansible_default_ipv4.netmask }}"
+        - "IPv4 Broadcast      : {{ ansible_default_ipv4.broadcast }}"
+        - "IPv4 Network        : {{ ansible_default_ipv4.network }}"
+        #- "Default IPv6 Interface: {{ ansible_default_ipv6.network }}"
+        #- "Default IPv6 Interface: {{ ansible_default_ipv6.network }}"
+
+    - name: Mount Info
+      debug:
+        msg:
+        - "Mount Point: {{ item.mount }}"
+        - "Device: {{ item.device }}"
+        - "FS Type: {{ item.fstype }}"
+        - "Mount Point {{item.mount}} is at {{item.block_used/item.block_total*100}} percent"
+      loop: "{{ ansible_mounts }}"
+
+      loop_control:
+        label: "{{ item.mount }}"
