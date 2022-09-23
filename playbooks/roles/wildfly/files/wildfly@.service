@@ -1,0 +1,22 @@
+[Unit]
+Description=The WildFly Application Server (Standalone) - %I
+After=syslog.target network.target
+Before=httpd.service
+
+[Service]
+Environment=LAUNCH_JBOSS_IN_BACKGROUND=1
+Environment=WILDFLY_HOME=/opt/wildfly/%I
+PassEnvironment=HOSTNAME
+#PassEnvironment=WILDFLY_HOME
+#PassEnvironment=JAVA_HOME
+EnvironmentFile=-/etc/sysconfig/wildfly-standalone
+User=wildfly
+Group=wildfly
+LimitNOFILE=102642
+PIDFile=/var/run/wildfly/wildfly-standalone-%I.pid
+#ExecStart=/opt/wildfly/%I/bin/launch.sh $WILDFLY_MODE $WILDFLY_CONF $WILDFLY_BIND $WILDFLY_MGMT
+ExecStart=$WILDFLY_HOME/bin/standalone.sh -c $WILDFLY_CONF -b $WILDFLY_BIND -bmanagement $WILDFLY_MGMT
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
