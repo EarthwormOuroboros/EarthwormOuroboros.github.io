@@ -1,5 +1,0 @@
-module add --name=org.postgresql --slot=main --resources=/usr/share/java/postgresql94-jdbc.jar --dependencies=javax.api,javax.transaction.api
-
-/subsystem=datasources/jdbc-driver=postgresql:add(driver-name="postgresql",driver-module-name="org.postgresql",driver-class-name=org.postgresql.xa.PGXADataSource)
-
-data-source add --jndi-name=java:jboss/datasources/KeycloakDS --name=KeycloakDS --connection-url=jdbc:postgresql://localhost/keycloak --driver-name=postgresql --user-name=kc_ds --password=8V8bST!3::=7^CAPe!GE=2Yh
