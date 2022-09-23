@@ -1,0 +1,13 @@
+# /etc/sysconfig/wildfly
+
+# The configuration you want to run
+WILDFLY_CONF=standalone.xml
+
+# The mode you want to run
+WILDFLY_MODE=standalone
+
+# The address to bind wildfly
+WILDFLY_BIND=0.0.0.0
+
+# The address to bind the management interface
+WILDFLY_MGMT=0.0.0.0
