@@ -1,0 +1,23 @@
+---
+- name: Create directories
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  - block:
+    - name: Check directories
+      stat:
+        path: './cisco_backups'
+      register: directory_data
+
+    - debug: var=directory_data.stat.path
+
+    - name: Create directory if it doesn't already exist
+      file:
+        path: './cisco_backups'
+        state: directory
+        mode: 0755
+        group: jdoe
+        owner: jdoe
+      when: not directory_data.stat.exists
