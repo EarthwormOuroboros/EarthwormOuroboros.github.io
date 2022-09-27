@@ -1,0 +1,16 @@
+---
+# task file for Linux Redis Instance
+# filename: roles/redis/tasks/instance.yml
+- name: Create Directory - /var/lib/redis/{{ Instance_Name }}
+  file:
+    path: /var/lib/redis/{{ Instance_Name }}
+    state: directory
+    owner: redis
+    group: redis
+    mode: 0750
+
+      
+    
+  when:
+    - ansible_facts['distribution'] == "openSUSE Leap"
+    - ansible_facts['distribution_major_version'] == "15"

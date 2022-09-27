@@ -1,0 +1,27 @@
+---
+# task file for Linux Redis
+# filename: roles/redis/tasks/main.yml
+- name: Redis Server
+  hosts: Redis
+  user: rudebwoy
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars_files:
+  - ../../../group_vars/COE.yml
+
+  # Install Redis package...
+  tasks:
+  # ...for OpenSUSE Leap 15 systems.
+  - name: Install Redis package (OpenSUSE Leap 15)
+    zypper: name=redis state=installed
+    when:
+      - ansible_facts['distribution'] == "openSUSE Leap"
+      - ansible_facts['distribution_major_version'] == "15"
+
+  # ...for Red Hat Enterprise Linux 8 systems.
+  - name: Install COE packages (RedHat 8)
+    yum: name=redis state=installed
+    when:
+      - ansible_facts['distribution'] == "RedHat"
+      - ansible_facts['distribution_major_version'] == "8"
