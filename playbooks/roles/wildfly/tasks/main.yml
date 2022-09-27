@@ -10,9 +10,9 @@
   - ../../../group_vars/wildfly.yml
 
   tasks:
-  - name: Install JDK - {{ prod_jdk_version }}-headless
+  - name: Install JDK - {{ jdk_version }}-headless
     dnf:
-      name: "{{ prod_jdk_version }}-headless"
+      name: "{{ jdk_version }}-headless"
 
   - name: Template file to /etc/profile.d/env-java.sh
     template:
@@ -35,26 +35,26 @@
 
   - name: Check if wildfly is installed
     stat: 
-      path: /opt/wildfly/{{ prod_wildfly_version }}/jboss-modules.jar
+      path: /opt/wildfly/{{ wildfly_version }}/jboss-modules.jar
       #checksum: b5376cd658b8dacb16f46e1819d0d437a20a8bd7
     register: wildfly_installed
 
 #  - import_playbook: install.yml
 #    when: stat_result.stat.exists == False
 
-  - name: Create /opt/wildfly/{{ prod_wildfly_version }}
+  - name: Create /opt/wildfly/{{ wildfly_version }}
     file:
-      path: /opt/wildfly/{{ prod_wildfly_version }}
+      path: /opt/wildfly/{{ wildfly_version }}
       state: directory
       owner: wildfly
       group: wildfly
       mode: '0755'
     #when: stat_result.stat.exists == False
 
-  - name: Extract wildfly-{{ prod_wildfly_version }}.tar.gz into /opt/wildfly/{{ prod_wildfly_version }}
+  - name: Extract package into /opt/wildfly/{{ wildfly_version }}
     unarchive:
-      src: ../files/wildfly-{{ prod_wildfly_version }}.tar.gz
-      dest: /opt/wildfly/{{ prod_wildfly_version }}
+      src: ../files/wildfly-{{ wildfly_version }}.tar.gz
+      dest: /opt/wildfly/{{ wildfly_version }}
       extra_opts: [--strip-components=1]
     when: wildfly_installed.stat.exists == False
 
@@ -78,7 +78,7 @@
   - name: Template file to /opt/wildfly/{{ prod_wildfly_version }}/bin/launch.sh
     template:
       src: ../templates/prod_launch.sh.j2
-      dest: /opt/wildfly/{{ prod_wildfly_version }}/bin/launch.sh
+      dest: /opt/wildfly/{{ wildfly_version }}/bin/launch.sh
       owner: wildfly
       group: wildfly
       mode: '0744'
@@ -109,7 +109,3 @@
       state: started
       enabled: yes
       masked: no
-
-#- import_playbook: install.yml
-#- import_playbook: configure.yml
-
