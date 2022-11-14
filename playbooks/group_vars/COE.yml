@@ -17,3 +17,9 @@ RedHat_8_Packages:
   - net-snmp-utils
   - redhat-lsb-core
  
+RedHat_9_Packages:
+  - vim-enhanced
+  - wget
+  - net-snmp
+  - net-snmp-utils
+  - redhat-lsb-core
