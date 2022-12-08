@@ -2,7 +2,7 @@
 
 import os,time,tarfile,logging
 import io,socket
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 # System data
 host_name = socket.gethostname()
@@ -16,8 +16,8 @@ try:
     config.read(config_file)
 
 except IOError:
-    print "Could not read config file: " + config_file
-    print "Bye!!!"
+    print("Could not read config file: " + config_file)
+    print("Bye!!!")
     sys.exit()
 
 def main():
@@ -27,13 +27,17 @@ def main():
         if 'default' in section:
             # Set default settings
             sources = config.get(section, 'sources').split(",")
-            base_dir = config.get(section, 'base_dir')
+            base_dir = config.get(section, 'base_dir') + "/parse-" + today + '-' + now
+            if not os.path.exists(base_dir):
+                print(base_dir + " does not exist!")
+                #os.mkdir(logdir)
 
             # Logging stuff
             logdir = base_dir + os.sep + 'logs'
             logfile = logdir + os.sep + host_name + '_' + today + '-' + now + '.log'
             # Create Logfile dir if needed
             if not os.path.exists(logdir):
+                print(logdir + " does not exist!")
                 os.mkdir(logdir)
 
             # Set basic settings.
