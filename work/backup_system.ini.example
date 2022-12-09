@@ -1,0 +1,67 @@
+# All paths are relative to the user's home unless specified otherwise.
+
+[default]
+# Default section.  All options are required.
+
+# This is where to store all files and logs.
+basedir = backup
+
+# Comma delimited list of paths to include for archive.
+sources = Devel
+
+[remote]
+# Define remote location to store archive.
+
+# Hostname of remote server.  SCP Only.
+host = localhost
+
+# Path on remote server.
+path = backup/remote
+
+# Remote user, default is current user.  Passwords not supported.  PSK is better.
+#user = 
+
+# SSH PSK file.  Default,
+#keyfile=.ssh/id_rsa
+
+[mysql]
+# MySQL 
+
+base_dir = backup/mysql
+
+# Host to backup.
+host = localhost
+
+# Port 
+#port = 3306
+
+# User
+#user = root
+
+# Socket.  If host set to localhost socket will override port.
+#socket = 
+
+# Defaults extra file
+defaults_extra_file = /home/lrwacondo/.samy_su
+
+# MySQL schema list. Default is all schemas
+schemas = mysql, cars, crypto
+
+[gerrit]
+
+# Gerrit schema.  Default name is reviewdb
+#db_schema = reviewdb
+
+# Gerrit DB Type.  Currently supports (and assumes) only MySQL.
+#db_type = MySQL
+
+# Location of Gerrit installation.
+base_dir = /srv/gerrit
+
+[redis]
+
+# Redis database list.
+#db_list = 
+
+# Location of Gerrit installation.
+base_dir = /var/lib/redis
