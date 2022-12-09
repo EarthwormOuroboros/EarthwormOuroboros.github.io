@@ -42,13 +42,6 @@
       - ansible_facts['distribution'] == "RedHat" or ansible_facts['distribution'] == "Rocky" or ansible_facts['distribution'] == "Alma"
       - ansible_facts['distribution_major_version'] >= "8"
 
-#  # Update all packages on RHEL 8+ systems.
-#  - name: Update all packages (RHEL 9 and clones)
-#    dnf: name=* state=latest update_cache=yes
-#    when:
-#      - ansible_facts['distribution'] == "RedHat" or ansible_facts['distribution'] == "Rocky" or ansible_facts['distribution'] == "Alma"
-#      - ansible_facts['distribution_major_version'] == "9"
-
   # Update all packages on OpenSUSE systems.
   - name: Update all packages (OpenSUSE)
     zypper: name=* state=latest update_cache=yes
@@ -57,7 +50,11 @@
       - ansible_facts['distribution_major_version'] == "15"
 
 #  - name: (Red Hat) Install EPEL Repo
-#  import_playbook: install_epel.yml
+#  import_task: install_epel.yml
 #  when:
 #    - ansible_facts['distribution'] == "RedHat"
-#    - ansible_facts['distribution_major_version'] == "8"
+
+#  - name: (OpenSUSE) Install Packman Repo
+#  import_task: install_packman.yml
+#  when:
+#    - ansible_facts['distribution'] == "openSUSE Leap"
