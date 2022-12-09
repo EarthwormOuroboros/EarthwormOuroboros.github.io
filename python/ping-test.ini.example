@@ -1,0 +1,7 @@
+[default]
+# Location for all output from this script.
+#base_dir = /tmp
+
+# Comma separated list of host names or IP Addresses.
+hosts = /home/lorenzo/devel,/home/lorenzo/work
+
